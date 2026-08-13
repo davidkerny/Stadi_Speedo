@@ -7063,6 +7063,16 @@
 	)
 	(wire
 		(pts
+			(xy 90.17 190.5) (xy 90.17 187.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "688cf93d-dfc9-40e2-9ad1-a57337a6ef6a")
+	)
+	(wire
+		(pts
 			(xy 116.84 90.17) (xy 121.92 90.17)
 		)
 		(stroke
@@ -7503,6 +7513,16 @@
 	)
 	(wire
 		(pts
+			(xy 90.17 182.88) (xy 90.17 180.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b24fcdb7-6f42-4827-af41-e1b4c658a803")
+	)
+	(wire
+		(pts
 			(xy 100.33 87.63) (xy 66.04 87.63)
 		)
 		(stroke
@@ -7510,6 +7530,16 @@
 			(type default)
 		)
 		(uuid "b3bbe3e5-338c-415e-b701-4e5981c58e3d")
+	)
+	(wire
+		(pts
+			(xy 127 179.07) (xy 127 187.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b554a66e-47c2-4188-9e56-10d790fa8197")
 	)
 	(wire
 		(pts
@@ -7623,16 +7653,6 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 180.34) (xy 91.44 180.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ca3b44f5-5b32-4ab3-bf4b-d7483f90b40b")
-	)
-	(wire
-		(pts
 			(xy 190.5 26.67) (xy 190.5 27.94)
 		)
 		(stroke
@@ -7660,6 +7680,16 @@
 			(type default)
 		)
 		(uuid "cc65a114-e59b-4e87-9767-7072d5801d76")
+	)
+	(wire
+		(pts
+			(xy 90.17 180.34) (xy 81.28 180.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cfc1d989-9ed8-42a4-80f1-72f3f7df280d")
 	)
 	(wire
 		(pts
@@ -7810,16 +7840,6 @@
 			(type default)
 		)
 		(uuid "e9bf6936-42d3-4828-9c9d-2b5885955c0f")
-	)
-	(wire
-		(pts
-			(xy 127 179.07) (xy 127 184.15)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ea782d38-84af-4b19-b0e1-9f1a4ba60bb5")
 	)
 	(wire
 		(pts
@@ -12775,7 +12795,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 127 184.15 0)
+		(at 127 187.96 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12786,7 +12806,7 @@
 		(fields_autoplaced yes)
 		(uuid "5d63f541-7670-4602-8a76-384dc012344b")
 		(property "Reference" "#PWR031"
-			(at 127 190.5 0)
+			(at 127 194.31 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12797,7 +12817,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 127 189.23 0)
+			(at 127 193.04 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12807,7 +12827,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 127 184.15 0)
+			(at 127 187.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12818,7 +12838,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 127 184.15 0)
+			(at 127 187.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12829,7 +12849,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 127 184.15 0)
+			(at 127 187.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14964,6 +14984,88 @@
 			(project "Stadion_rychlomer"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:FerriteBead_Small")
+		(at 90.17 185.42 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8d381930-d8c1-4fa2-b504-6afa335bc96b")
+		(property "Reference" "FB6"
+			(at 92.71 184.188 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "FerriteBead_Small"
+			(at 92.71 186.728 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Inductor_SMD:L_Panasonic_PCC-M0530M"
+			(at 91.948 185.42 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 90.17 185.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Ferrite bead, small symbol"
+			(at 90.17 185.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "7c22524e-5d60-434f-9fca-c9cda93397d4")
+		)
+		(pin "2"
+			(uuid "00c70c1d-5f07-4f64-a499-63c7e6cb6ad5")
+		)
+		(instances
+			(project "Stadion_rychlomer"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "FB6")
 					(unit 1)
 				)
 			)
@@ -18170,7 +18272,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 91.44 180.34 0)
+		(at 90.17 190.5 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -18181,7 +18283,7 @@
 		(fields_autoplaced yes)
 		(uuid "f69fc9a4-05a4-4b12-974b-a13672f07067")
 		(property "Reference" "#PWR033"
-			(at 91.44 186.69 0)
+			(at 90.17 196.85 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18192,7 +18294,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 91.44 185.42 0)
+			(at 90.17 195.58 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -18202,7 +18304,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 91.44 180.34 0)
+			(at 90.17 190.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18213,7 +18315,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 91.44 180.34 0)
+			(at 90.17 190.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18224,7 +18326,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 91.44 180.34 0)
+			(at 90.17 190.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

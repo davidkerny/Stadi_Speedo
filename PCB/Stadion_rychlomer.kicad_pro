@@ -60,13 +60,13 @@
           "hatch_smoothing_level": 0,
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
-          "min_clearance": 0.5,
+          "min_clearance": 0.2,
           "min_island_area": 10.0,
-          "min_thickness": 0.25,
+          "min_thickness": 0.2,
           "pad_connection": 1,
           "remove_islands": 0,
-          "thermal_relief_gap": 0.5,
-          "thermal_relief_spoke_width": 0.5
+          "thermal_relief_gap": 0.2,
+          "thermal_relief_spoke_width": 0.3
         }
       },
       "diff_pair_dimensions": [
@@ -211,7 +211,11 @@
       ],
       "track_widths": [
         0.0,
-        0.2
+        0.2,
+        0.3,
+        0.4,
+        0.6,
+        1.0
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -544,6 +548,7 @@
       "netlist": "",
       "plot": "gerber",
       "specctra_dsn": "",
+      "step": "",
       "vrml": "Stadion_rychlomer.wrl"
     },
     "page_layout_descr_file": ""
@@ -720,7 +725,7 @@
         "uuid": "d59b9b58-5e27-42e2-8153-65feee1218fc"
       }
     ],
-    "used_designators": "C12-23,D6-9,#PWR6,#PWR11,#PWR17,#PWR34-38,#PWR40-52,Q1-2,J5,R9-12,H1-3,FB1-5",
+    "used_designators": "C12-23,D6-9,#PWR6,#PWR11,#PWR17,#PWR34-38,#PWR40-52,Q1-2,J5,R9-12,H1-3,FB1-6",
     "variants": []
   },
   "sheets": [
