@@ -5,7 +5,7 @@
 #include "stadionlogo.h"
 
 // --- FANCY FONT PRO RYCHLOST ---
-#include <Fonts/FreeSansBold24pt7b.h>
+//#include <Fonts/FreeSansBold24pt7b.h>
 
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
@@ -122,7 +122,7 @@ void vykresliDashboard() {
   display.drawXBitmap(0, 0, logo_stadion, STADION_WIDTH, STADION_HEIGHT, SSD1306_WHITE);
   
   // 2. Modrá zóna - OBŘÍ VYHLAZENÁ RYCHLOST
-  display.setFont(&FreeSansBold24pt7b); // Aktivace anti-aliased fontu
+//  display.setFont(&FreeSansBold24pt7b); // Aktivace anti-aliased fontu
   display.setTextColor(SSD1306_WHITE);
   
   // Vektorové fonty kreslí od spodní linky (baseline). 

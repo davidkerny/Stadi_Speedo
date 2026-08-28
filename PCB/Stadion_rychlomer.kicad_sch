@@ -9522,7 +9522,7 @@
 		(in_bom yes)
 		(on_board no)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "0c351161-8878-4ab2-a7f1-4a1d6020dbda")
 		(property "Reference" "R2"
 			(at 72.136 96.774 90)
@@ -14415,7 +14415,7 @@
 		(in_bom yes)
 		(on_board no)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "823e6ad2-ef58-4feb-9dcc-695efbf7e54d")
 		(property "Reference" "R3"
 			(at 71.628 90.932 90)
