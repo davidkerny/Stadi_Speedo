@@ -580,6 +580,217 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "AERO_FerriteBead:FerriteBead_4A_180Ohm_0806"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "FB"
+				(at 1.905 1.27 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "FerriteBead_4A_180Ω"
+				(at 1.905 -1.27 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Inductor_SMD:L_0805_2012Metric"
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://cz.mouser.com/datasheet/2/281/murata_mure-s-a0008530226-1-1763711.pdf"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Ferrite Beads EMI Filter SMD 180ohm INFOTMT  4A  22mOhm DC resistance"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Supplier" "Mouser Electronics"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "PN" "NFZ2MSD181SZ10L"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Supplier PN" "81-NFZ2MSD181SZ10L"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Supplier Link" "https://cz.mouser.com/ProductDetail/Murata-Electronics/NFZ2MSD181SZ10L?qs=rkhjVJ6%2F3EI5R7nKRbJ7XA%3D%3D"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "Ferrite Beads"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Inductor_* L_* *Ferrite*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "FerriteBead_4A_180Ohm_0806_0_1"
+				(polyline
+					(pts
+						(xy -1.8288 0.2794) (xy -1.1176 1.4986) (xy 1.8288 -0.2032) (xy 1.1176 -1.4224) (xy -1.8288 0.2794)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0.889) (xy 0 1.2954)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -1.27) (xy 0 -0.7874)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "FerriteBead_4A_180Ohm_0806_1_1"
+				(pin passive line
+					(at 0 2.54 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -2.54 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "AERO_Power_Protection:SMCJ85CA"
 			(pin_numbers
 				(hide yes)
@@ -3684,6 +3895,171 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Diode:PESD3V3U1UL"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "PESD3V3U1UL"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Diode_SMD:D_SOD-882"
+				(at 0 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PESD3V3U1UL.pdf"
+				(at 0 5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Ultra low capacitance unidirectional ESD protection diode, 3.3V, SOD-882"
+				(at 0 7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "D*SOD?882"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "PESD3V3U1UL_0_1"
+				(polyline
+					(pts
+						(xy -1.27 -1.27) (xy -1.27 1.27) (xy -0.762 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "PESD3V3U1UL_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Interface_USB:FT232RL"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -6034,12 +6410,6 @@
 		(uuid "100d5f92-32d8-46e3-aabb-a232a20f8d85")
 	)
 	(junction
-		(at 199.39 26.67)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "140cd252-2099-44c7-b13a-2337803d651d")
-	)
-	(junction
 		(at 226.06 114.3)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6194,6 +6564,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "dee3d2e5-aa74-42d6-b62c-fc72e3c459e3")
+	)
+	(junction
+		(at 199.39 26.67)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e38eeee9-4d32-45c3-82e8-b45ad58c6a91")
 	)
 	(junction
 		(at 52.07 41.91)
@@ -7483,6 +7859,16 @@
 	)
 	(wire
 		(pts
+			(xy 199.39 26.67) (xy 212.09 26.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ae20a094-427d-4b5d-8b15-2ebde8a40ecd")
+	)
+	(wire
+		(pts
 			(xy 58.42 29.21) (xy 58.42 25.4)
 		)
 		(stroke
@@ -7870,16 +8256,6 @@
 			(type default)
 		)
 		(uuid "eb9e8b93-be15-41dc-be9c-8150e9c51207")
-	)
-	(wire
-		(pts
-			(xy 199.39 26.67) (xy 212.09 26.67)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ebcd2935-fee1-4a60-9241-56d3fd8ae11e")
 	)
 	(wire
 		(pts
@@ -12725,7 +13101,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "5a491ecb-875a-45a2-bd3e-b779de799822")
 		(property "Reference" "#PWR011"
 			(at 173.99 30.48 0)
@@ -12739,7 +13114,7 @@
 			)
 		)
 		(property "Value" "VCC"
-			(at 173.99 21.59 0)
+			(at 172.212 22.098 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14214,7 +14589,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:FerriteBead_Small")
+		(lib_id "AERO_FerriteBead:FerriteBead_4A_180Ohm_0806")
 		(at 185.42 26.67 90)
 		(unit 1)
 		(body_style 1)
@@ -14235,7 +14610,7 @@
 				)
 			)
 		)
-		(property "Value" "FerriteBead_Small"
+		(property "Value" "FerriteBead_4A_180Ω"
 			(at 185.3819 22.86 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14256,7 +14631,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://cz.mouser.com/datasheet/2/281/murata_mure-s-a0008530226-1-1763711.pdf"
 			(at 185.42 26.67 0)
 			(hide yes)
 			(show_name no)
@@ -14267,7 +14642,51 @@
 				)
 			)
 		)
-		(property "Description" "Ferrite bead, small symbol"
+		(property "Description" "Ferrite Beads EMI Filter SMD 180ohm INFOTMT  4A  22mOhm DC resistance"
+			(at 185.42 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier" "Mouser Electronics"
+			(at 185.42 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "PN" "NFZ2MSD181SZ10L"
+			(at 185.42 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier PN" "81-NFZ2MSD181SZ10L"
+			(at 185.42 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier Link" "https://cz.mouser.com/ProductDetail/Murata-Electronics/NFZ2MSD181SZ10L?qs=rkhjVJ6%2F3EI5R7nKRbJ7XA%3D%3D"
 			(at 185.42 26.67 0)
 			(hide yes)
 			(show_name no)
@@ -14990,7 +15409,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:FerriteBead_Small")
+		(lib_id "AERO_FerriteBead:FerriteBead_4A_180Ohm_0806")
 		(at 90.17 185.42 180)
 		(unit 1)
 		(body_style 1)
@@ -15012,7 +15431,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "FerriteBead_Small"
+		(property "Value" "FerriteBead_4A_180Ω"
 			(at 92.71 186.728 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15034,7 +15453,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://cz.mouser.com/datasheet/2/281/murata_mure-s-a0008530226-1-1763711.pdf"
 			(at 90.17 185.42 0)
 			(hide yes)
 			(show_name no)
@@ -15045,7 +15464,51 @@
 				)
 			)
 		)
-		(property "Description" "Ferrite bead, small symbol"
+		(property "Description" "Ferrite Beads EMI Filter SMD 180ohm INFOTMT  4A  22mOhm DC resistance"
+			(at 90.17 185.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier" "Mouser Electronics"
+			(at 90.17 185.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "PN" "NFZ2MSD181SZ10L"
+			(at 90.17 185.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier PN" "81-NFZ2MSD181SZ10L"
+			(at 90.17 185.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier Link" "https://cz.mouser.com/ProductDetail/Murata-Electronics/NFZ2MSD181SZ10L?qs=rkhjVJ6%2F3EI5R7nKRbJ7XA%3D%3D"
 			(at 90.17 185.42 0)
 			(hide yes)
 			(show_name no)
@@ -18067,8 +18530,8 @@
 		)
 	)
 	(symbol
-		(lib_id "AERO_Power_Protection:SMCJ85CA")
-		(at 199.39 30.48 90)
+		(lib_id "Diode:PESD3V3U1UL")
+		(at 199.39 30.48 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -18076,10 +18539,20 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "f2ec9768-7b42-4235-b83d-354532c2a0d9")
 		(property "Reference" "D9"
-			(at 201.93 29.2099 90)
+			(at 201.93 30.4799 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "PTVS8V5S1UTR-QX"
+			(at 208.788 20.32 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -18089,8 +18562,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "SMCJ85CA"
-			(at 201.93 31.7499 90)
+		(property "Footprint" "AERO_Diode_SMD:D_SOD-123FL"
+			(at 194.31 30.48 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18098,10 +18571,9 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-123F"
+		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PTVSXS1UTR-Q_SER.pdf"
 			(at 204.47 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -18112,7 +18584,18 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://cz.mouser.com/datasheet/2/240/media-3320072.pdf"
+		(property "Description" "Ochranné diody proti elektrostatickým výbojům/diody pro potlačení napětí z přechodových jevů PTVS8V5S1UTR-Q/SOD123W/CFP3"
+			(at 207.01 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "PN" " PTVS8V5S1UTR-QX "
 			(at 199.39 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -18123,29 +18606,7 @@
 				)
 			)
 		)
-		(property "Description" "ESD Suppressors / TVS Diodes 1.5kW 85V 5% Bi-Directional Ipp:11A Vclamp: 137V Vbrkdn: 94.4V"
-			(at 199.39 30.48 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "PN" "SMCJ85CA"
-			(at 199.39 30.48 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Supplier PN" "576-SMCJ85CA"
+		(property "Supplier PN" " 771-PTVS8V5S1UTR-QX "
 			(at 199.39 30.48 0)
 			(hide yes)
 			(show_name no)
