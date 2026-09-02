@@ -1,11 +1,11 @@
 #include <Wire.h>
-#include <Adafruit_GFX.h>
+  #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
 #include "stadionlogo.h"
 
 // --- FANCY FONT PRO RYCHLOST ---
-//#include <Fonts/FreeSansBold24pt7b.h>
+#include <Fonts/FreeSansBold24pt7b.h>
 
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
@@ -34,7 +34,11 @@ unsigned long tripKilometry = 0;
 unsigned long posledniAktualizaceCas = 0;
 unsigned long posledniZapisEEPROM = 0;
 
+volatile byte OtociloSeKolo = 0;
+
 void setup() {
+ //   pinMode(A4, INPUT_PULLUP);
+ //   pinMode(A5, INPUT_PULLUP);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   
@@ -50,6 +54,25 @@ void setup() {
   tripMetry = tripKilometry * 1000;
 
   attachInterrupt(digitalPinToInterrupt(SENSOR_PIN), snimacPreruseni, FALLING);
+
+  pinMode(13, OUTPUT);
+  digitalWrite(13,1);
+  delay(1000);
+    digitalWrite(13,0);
+      delay(1000);
+  digitalWrite(13,1);
+  delay(1000);
+    digitalWrite(13,0);
+      delay(1000);
+  digitalWrite(13,1);
+  delay(1000);
+    digitalWrite(13,0);
+      delay(1000);
+  digitalWrite(13,1);
+  delay(1000);
+    digitalWrite(13,0);
+
+  
 }
 
 void loop() {
@@ -92,20 +115,29 @@ void loop() {
     vykresliDashboard();
     posledniAktualizaceCas = aktualniCas;
   }
+  
+  if (OtociloSeKolo)
+  {
+    unsigned long cas = millis();
+    unsigned long rozdil = cas - posledniPulzCas;
+    // Pokud je čas mezi pulzy menší než 45 ms (cca 141 km/h),
+    // kód to vyhodnotí jako rušení a pulz kompletně ignoruje.
+    if (rozdil > 45) { 
+      casMeziPulzy = rozdil;
+      posledniPulzCas = cas;
+      novyPulz = true;
+    }  
+    OtociloSeKolo =0;
+  }
+    
 }
 
 void snimacPreruseni() {
-  unsigned long cas = millis();
-  unsigned long rozdil = cas - posledniPulzCas;
-
-  // Pokud je čas mezi pulzy menší než 45 ms (cca 141 km/h),
-  // kód to vyhodnotí jako rušení a pulz kompletně ignoruje.
-  if (rozdil > 45) { 
-    casMeziPulzy = rozdil;
-    posledniPulzCas = cas;
-    novyPulz = true;
-  }
+  OtociloSeKolo = 1;
 }
+
+
+
 
 
 
