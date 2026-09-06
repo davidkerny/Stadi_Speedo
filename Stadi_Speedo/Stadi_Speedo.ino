@@ -6,7 +6,7 @@
 #include "stadionlogo.h"
 
 // ============================================================
-//  TACHOMETR PRO MOPED
+//  TACHOMETR PRO MOPED   V5
 //  Čte otáčky kola pomocí snímače (jazýčkový/Hall) a počítá
 //  rychlost, celkový nájezd (ODO) a denní nájezd (TRIP).
 // ============================================================
@@ -34,7 +34,7 @@ const byte SENSOR_PIN = 2;
 
 // Obvod kola v metrech. Jeden pulz snímače = ujetí této
 // vzdálenosti.
-const float OBVOD_KOLA_M = 1.77;
+const float OBVOD_KOLA_M = 10.77;
 
 // --- Ochrana proti rušení (jiskření od zapalování apod.) ---
 
@@ -312,12 +312,12 @@ void zobrazUvodniLogo()
   const byte POCET_BLIKNUTI = 4;
   const unsigned long krokMs =
     LOGO_DOBA_ZOBRAZENI_MS / (POCET_BLIKNUTI * 2);
-
+  pinMode(13, OUTPUT);
   for (byte i = 0; i < POCET_BLIKNUTI; i++)
   {
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(13, HIGH);
     delay(krokMs);
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(13, LOW);
     delay(krokMs);
   }
 }
