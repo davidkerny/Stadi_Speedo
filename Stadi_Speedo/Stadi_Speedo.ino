@@ -34,7 +34,7 @@ const byte SENSOR_PIN = 2;
 
 // Obvod kola v metrech. Jeden pulz snímače = ujetí této
 // vzdálenosti.
-const float OBVOD_KOLA_M = 10.77;
+const float OBVOD_KOLA_M = 1.77;
 
 // --- Ochrana proti rušení (jiskření od zapalování apod.) ---
 
