@@ -1,0 +1,120 @@
+
+// ============================================================
+// 7) DISPLEJ (Dominantní tisíce + menší stovky + nastavitelný layout)
+// ============================================================
+
+void vykresliDashboard()
+{
+  u8g2.clearBuffer();
+
+  // ----------------------------------------------------------
+  // KONFIGURACE LAYOUTU (Konstanty pro snadné ladění)
+  // ----------------------------------------------------------
+  const int Y_BASELINE          = 48; // Společná základní linka pro velká i malá čísla
+  const int MEZERA_TISIC_PX     = 3;  // Mezera mezi velkými tisíci a menšími stovkami
+  const int MARGIN_PRAVY_PX     = 1;  // Pravý okraj od displeje pro "rpm" a "MTH"
+  
+  const int RPM_LABEL_Y         = 18; // Fixní Y pozice pro popisek "rpm" vpravo nahoře
+  const int SPODNI_RADEK_Y      = 64; // Y pozice pro spodní řádek (MAX RPM / MTH)
+
+  // ----------------------------------------------------------
+  // 1) PŘÍPRAVA ŘETĚZCŮ
+  // ----------------------------------------------------------
+  bool maTisice = (zobrazeneRychlostRpm >= 1000);
+
+  char strTisice[4];
+  char strZbytek[4];
+
+  if (maTisice)
+  {
+    snprintf(strTisice, sizeof(strTisice), "%u", zobrazeneRychlostRpm / 1000);
+    snprintf(strZbytek, sizeof(strZbytek), "%03u", zobrazeneRychlostRpm % 1000);
+  }
+  else
+  {
+    strTisice[0] = '\0';
+    snprintf(strZbytek, sizeof(strZbytek), "%u", zobrazeneRychlostRpm);
+  }
+
+  // ----------------------------------------------------------
+  // 2) VÝPOČET CENTROVÁNÍ ČÍSEL
+  // ----------------------------------------------------------
+  int sirkaTisice = 0;
+  int sirkaZbytek = 0;
+
+  if (maTisice)
+  {
+    u8g2.setFont(u8g2_font_logisoso42_tn);
+    sirkaTisice = u8g2.getStrWidth(strTisice);
+
+    u8g2.setFont(u8g2_font_logisoso24_tn);
+    sirkaZbytek = u8g2.getStrWidth(strZbytek);
+  }
+  else
+  {
+    u8g2.setFont(u8g2_font_logisoso42_tn);
+    sirkaZbytek = u8g2.getStrWidth(strZbytek);
+  }
+
+  int sirkaCisel = maTisice ? (sirkaTisice + MEZERA_TISIC_PX + sirkaZbytek) : sirkaZbytek;
+  
+  // Vycentrování hlavního bloku čísel na střed displeje
+  int xStart = (128 - sirkaCisel) / 2;
+  if (xStart < 0) xStart = 0;
+
+  // ----------------------------------------------------------
+  // 3) VYKRESLENÍ OTÁČEK
+  // ----------------------------------------------------------
+  if (maTisice)
+  {
+    // Velké tisíce (logisoso42)
+    u8g2.setFont(u8g2_font_logisoso42_tn);
+    u8g2.setCursor(xStart, Y_BASELINE);
+    u8g2.print(strTisice);
+
+    // Menší stovky (logisoso24) na stejnou baseline
+    int xZbytek = xStart + sirkaTisice + MEZERA_TISIC_PX;
+    u8g2.setFont(u8g2_font_logisoso24_tn);
+    u8g2.setCursor(xZbytek, Y_BASELINE);
+    u8g2.print(strZbytek);
+  }
+  else
+  {
+    // Volnoběh/pod 1000 RPM (velké číslice na středu)
+    u8g2.setFont(u8g2_font_logisoso42_tn);
+    u8g2.setCursor(xStart, Y_BASELINE);
+    u8g2.print(strZbytek);
+  }
+
+  // ----------------------------------------------------------
+  // 4) FIXNÍ POPISKY A SPODNÍ ŘÁDEK
+  // ----------------------------------------------------------
+  u8g2.setFont(u8g2_font_6x10_tf);
+
+  // --- Popisek "rpm" TRVALE VPRÁVO NAHOŘE ---
+  int sirkaRpmLabel = u8g2.getStrWidth("rpm");
+  u8g2.setCursor(128 - MARGIN_PRAVY_PX - sirkaRpmLabel, RPM_LABEL_Y);
+  u8g2.print("rpm");
+
+  // --- MAX RPM vlevo dole ---
+  u8g2.setCursor(0, SPODNI_RADEK_Y);
+  u8g2.print("MAX ");
+  u8g2.print(maxRpm);
+
+  // --- Motohodiny MTH vpravo dole ---
+  float mthHodiny = mthSekundy / 3600.0;
+  char cisloMth[12];
+  dtostrf(mthHodiny, 4, 1, cisloMth);
+
+  char *zacatekCisla = cisloMth;
+  while (*zacatekCisla == ' ') zacatekCisla++;
+
+  char mthText[16];
+  snprintf(mthText, sizeof(mthText), "%s MTH", zacatekCisla);
+
+  int sirkaMthTextu = u8g2.getStrWidth(mthText);
+  u8g2.setCursor(128 - MARGIN_PRAVY_PX - sirkaMthTextu, SPODNI_RADEK_Y);
+  u8g2.print(mthText);
+
+  u8g2.sendBuffer();
+}

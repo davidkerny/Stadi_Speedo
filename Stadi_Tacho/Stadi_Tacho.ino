@@ -206,7 +206,7 @@ void zobrazUvodniLogo()
   pinMode(LED_BUILTIN, OUTPUT);
 
   int x = (128 - STADION_WIDTH) / 2;
-  int y = (64 - STADION_HEIGHT) / 2;
+  int y = (50 - STADION_HEIGHT) / 2;
 
   u8g2.clearBuffer();
   u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
@@ -360,6 +360,7 @@ void loop()
 }
 
 
+
 // ============================================================
 // 7) DISPLEJ
 // ============================================================
@@ -367,55 +368,77 @@ void loop()
 void vykresliDashboard()
 {
   u8g2.clearBuffer();
-
-  // --- Formátování velkých otáček s mezerou pro tisíce (např. 12 450) ---
-  char strRpm[10];
+// --- 1. TÍSÍCE OTÁČEK (viditelné až od 1000 RPM, číslice zvlášť) ---
   if (zobrazeneRychlostRpm >= 1000)
   {
-    snprintf(strRpm, sizeof(strRpm), "%u %03u", zobrazeneRychlostRpm / 1000, zobrazeneRychlostRpm % 1000);
+    u8g2.setFont(u8g2_font_logisoso50_tn);
+
+    unsigned int tisice = zobrazeneRychlostRpm / 1000;
+    if (tisice >= 10)
+    {
+      // Desítky tisíc (10–99) -> vytiskneme obě číslice zvlášť s vlastním kerningem
+      u8g2.setCursor(-7, 50);
+      u8g2.print(tisice / 10);
+
+      u8g2.setCursor(20, 50);
+      u8g2.print(tisice % 10);
+    }
+    else
+    {
+      // Jednotky tisíc (1–9) -> tiskneme pouze druhou číslici na fixní pozici
+      u8g2.setCursor(14, 50);
+      u8g2.print(tisice);
+    }
+  }
+
+  // --- 2. STOVKY OTÁČEK ---
+  u8g2.setFont(u8g2_font_logisoso24_tn);
+  int xStovky;
+  if (zobrazeneRychlostRpm >= 10000)
+  {    xStovky = 60;}
+  else if (zobrazeneRychlostRpm >= 1000)
+  {    xStovky = 55;}
+  else  {    xStovky = 38;}
+  u8g2.setCursor(xStovky, 39);
+  
+  char strZbytek[4];
+  if (zobrazeneRychlostRpm == 0)
+  {
+    snprintf(strZbytek, sizeof(strZbytek), "000");                              // Při 0 RPM zobrazí natvrdo "000"
+  }
+  else if (zobrazeneRychlostRpm >= 1000)
+  {
+    snprintf(strZbytek, sizeof(strZbytek), "%03u", zobrazeneRychlostRpm % 1000); // např. "050"
   }
   else
   {
-    snprintf(strRpm, sizeof(strRpm), "%u", zobrazeneRychlostRpm);
+    snprintf(strZbytek, sizeof(strZbytek), "%u", zobrazeneRychlostRpm);          // např. "850" nebo "45"
   }
+  u8g2.print(strZbytek);
 
-  // --- Velké číslo otáček ---
-  u8g2.setFont(u8g2_font_logisoso58_tn);
-
-  int sirkaRpm = u8g2.getStrWidth(strRpm);
-  int xPozice = (128 - 25) - sirkaRpm; // 25 px rezerva zprava na "rpm"
-  if (xPozice < 0) xPozice = 0;
-
-  u8g2.setCursor(xPozice, 57);
-  u8g2.print(strRpm);
-
-  // --- Popisek "rpm" ---
+  // --- 3. POPISKY A SPODNÍ ŘÁDEK (Malý font 6x10) ---
   u8g2.setFont(u8g2_font_6x10_tf);
-  u8g2.setCursor(108, 57);
+
+  // Popisek "rpm" natvrdo vpravo nahoře (X = 108)
+  u8g2.setCursor(110, 32);
   u8g2.print("rpm");
 
-  // --- MAX RPM vlevo dole (v RAM) ---
+  // MAX RPM vlevo dole
   u8g2.setCursor(0, 64);
   u8g2.print("MAX ");
   u8g2.print(maxRpm);
 
-  // --- Motohodiny MTH vpravo dole (1 desetinné místo, z EEPROM) ---
-  float mthHodiny = mthSekundy / 3600.0;
+  // Motohodiny MTH zarovnané přesně DOPRAVA (X = 128 - šířka textu)
+float mthHodiny = mthSekundy / 3600.0;
+  
+  char cisloMth[10];
+  dtostrf(mthHodiny, 1, 1, cisloMth); // Převod float na řetězec bez vodících mezer
 
-  char cisloMth[8];
-  dtostrf(mthHodiny, 4, 1, cisloMth);
+  char mthText[16];
+  snprintf(mthText, sizeof(mthText), "%s MTH", cisloMth);
 
-  char *zacatekCisla = cisloMth;
-  while (*zacatekCisla == ' ')
-  {
-    zacatekCisla++;
-  }
-
-  char mthText[12];
-  snprintf(mthText, sizeof(mthText), "%s MTH", zacatekCisla);
-
-  int sirkaTextu = u8g2.getStrWidth(mthText);
-  u8g2.setCursor(128 - sirkaTextu, 64);
+  int xMth = 128 - u8g2.getStrWidth(mthText);
+  u8g2.setCursor(xMth, 64);
   u8g2.print(mthText);
 
   u8g2.sendBuffer();
