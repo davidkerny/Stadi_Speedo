@@ -1,4 +1,4 @@
-
+Stadi Speedo Changelog
 
 V5 nová verze, funkcionel.
 5.1 fixed obvod kola (1.77mm pro 16" na S42)
