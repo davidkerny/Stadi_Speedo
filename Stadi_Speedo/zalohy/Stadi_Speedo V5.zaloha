@@ -6,7 +6,7 @@
 #include "stadionlogo.h"
 
 // ============================================================
-//  STADI SPEEDO   V5
+//  TACHOMETR PRO MOPED   V5
 //  Čte otáčky kola pomocí snímače (jazýčkový/Hall) a počítá
 //  rychlost, celkový nájezd (ODO) a denní nájezd (TRIP).
 // ============================================================
@@ -27,9 +27,6 @@
 // ============================================================
 // 1) NASTAVENÍ
 // ============================================================
-
-// --- Verze firmwaru ---
-const char FW_VERZE[] = "Stadi Speedo 5.2";
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
@@ -306,15 +303,12 @@ void zobrazUvodniLogo()
 
   u8g2.clearBuffer();
   u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
-
-  // 2) Výpis verze FW
-  u8g2.setFont(u8g2_font_5x7_tf);
-  u8g2.setCursor(0, 64);
-  u8g2.print(FW_VERZE);
-
   u8g2.sendBuffer();
 
-  // LED13 pár-krát blikne.
+  // Místo jednoho delay(LOGO_DOBA_ZOBRAZENI_MS) rozsekáme
+  // čekání na menší kousky a mezi nimi přepínáme LED -
+  // logo tak svítí stejně dlouho jako dřív (500 ms), jen
+  // navíc LED13 během něj pár-krát blikne.
   const byte POCET_BLIKNUTI = 4;
   const unsigned long krokMs =
     LOGO_DOBA_ZOBRAZENI_MS / (POCET_BLIKNUTI * 2);
