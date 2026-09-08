@@ -8,7 +8,7 @@
 // ============================================================
 //  STADI SPEEDO   V5
 //  Čte otáčky kola pomocí snímače (jazýčkový/Hall) a počítá
-//  rychlost, celkový nájezd (ODO) a denní nájezd (TRIP).
+//  rychlost, celkový nájezd (ODO v EEPROM) a denní nájezd (TRIP v RAM).
 // ============================================================
 //
 //  STRUKTURA SOUBORU (čti odshora dolů, je to logický příběh):
@@ -302,7 +302,7 @@ void zobrazUvodniLogo()
 
   // Vycentrování loga na 128x64 displeji.
   int x = (128 - STADION_WIDTH) / 2;
-  int y = (64 - STADION_HEIGHT) / 2;
+  int y = (50 - STADION_HEIGHT) / 2;
 
   u8g2.clearBuffer();
   u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
