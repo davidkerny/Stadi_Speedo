@@ -8667,7 +8667,7 @@
 		)
 		(uuid "972a4874-dc27-4435-8929-06a48ef5f8c7")
 	)
-	(label "I2C_SDA"
+	(label "I2C_SCL"
 		(at 71.12 85.09 0)
 		(effects
 			(font
@@ -8747,7 +8747,7 @@
 		)
 		(uuid "b6267d99-900d-4ee4-a29d-ba33bd2a395f")
 	)
-	(label "I2C_SCL"
+	(label "I2C_SDA"
 		(at 71.12 82.55 0)
 		(effects
 			(font
