@@ -9,7 +9,6 @@
 //   STADI TACHO  V1
 //   Čte otáčky motoru ze snímače/smyčky kolem kabelu svíčky na D3 (přerušení INT1).
 //   Počítá aktuální RPM, MAX RPM (v RAM) a motohodiny MTH (v EEPROM).
-// ============================================================
 
 // ============================================================
 // 1) NASTAVENÍ
@@ -40,7 +39,7 @@ const unsigned long CAS_DO_ZASTAVENI_MS = 200UL;
 const unsigned long KROK_ULOZENI_MTH_SEK = 360UL;
 
 #define WATCHDOG_TIMEOUT WDTO_2S
-const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 2000;
+const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1999;
 
 // --- Kalmanův filtr (vyhlazení otáček) ---
 const float KALMAN_Q = 2.0;   // Vyšší Q = blesková reakce na vrknutí plynem
