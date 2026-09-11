@@ -1,5 +1,7 @@
 Stadi Speedo Changelog
 
 V5 nová verze, funkcionel.
-5.1 fixed obvod kola (1.77mm pro 16" na S42)
-V5.2 přidána verze FW do bootscreenu
+5.1 fixed obvod kola (1.77mm pro 16" na S42)  __TESTED OK
+V5.2 přidána verze FW do bootscreenu  __TESTED OK
+V5.3 kosmetika
+V6 EEPROM ochrana před korupcí během brownoutu
