@@ -9,8 +9,7 @@
 //  STADI MULTIGAUGE V1
 //  Speedo furt čte kolo na D2.
 //  Tacho navíc čte otáčky motoru na D3 (INT1).
-//  RPM se na displeju ukáže v tisících na jedno desetinné místo:
-//  5.0 = 5000 RPM, 7.0 = 7000 RPM.
+//  RPM ve stovkách 50 = 5000 RPM, 70 = 7000 RPM.
 //  MAX RPM ani MTH tady nejsou, bo na to kašlem.
 // ============================================================
 
@@ -717,6 +716,10 @@ void vykresliDashboard()
   {
     u8g2.setFont(u8g2_font_6x10_tf);
 
+     // Popisek x100.
+     //u8g2.setCursor(95, 51);
+     //u8g2.print("x100");
+     
     // Popisek rpm.
      u8g2.setCursor(103, 41);
      u8g2.print("rpm");
