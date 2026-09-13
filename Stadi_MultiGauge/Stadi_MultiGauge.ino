@@ -6,10 +6,13 @@
 #include "stadionlogo.h"
 
 // ============================================================
-//  STADI MULTIGAUGE V1
+
+const char FW_VERZE[] = "Stadi MultiGauge V1.2";
+
 //  Speedo furt čte kolo na D2.
 //  Tacho navíc čte otáčky motoru na D3 (INT1).
-//  RPM ve stovkách 50 = 5000 RPM, 70 = 7000 RPM.
+//  KM/H + RPM ve stovkách (50 = 5000 RPM, 70 = 7000 RPM.)
+//  ODOmetr (v EEPROM) a TRIP (v RAM)
 //  MAX RPM ani MTH tady nejsou, bo na to kašlem.
 // ============================================================
 
@@ -17,22 +20,22 @@
 // 1) NASTAVENÍ
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1";
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+//Init OLED klasika 0.96"
+//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+//Init OLED Laskakit 1.3"
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
-// --- Speedo ---
-// Snímač kola je furt na D2 / INT0.
+
+// --- Speedo snímač kola (INT0) ---
 const byte SENSOR_PIN = 2;
 
-// Obvod kola v metrech. Jeden pulz snímača = ujetí této
-// vzdálenosti.
+// Obvod kola v metrech. = vzdálenost per pulz
 const float OBVOD_KOLA_M = 1.77;
 
 // --- Ochrana speeda proti rušení ---
 
-// Moped reálně nepřekročí ~120 km/h. Pulz rychlejší než toto
-// berem jako rušení.
+// Moped jede do 120 km/h. Rychlejší pulz ignorujem.
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL;
 
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
@@ -41,8 +44,7 @@ const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
 
 const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 
-// --- Tacho ---
-// Motorový snímač je na D3 / INT1.
+// --- Tacho snímač motor rpm (INT1) ---
 const byte TACHO_PIN = 3;
 
 // Tady berem 1 přijatý pulz = 1 otáčka motoru.
@@ -54,10 +56,10 @@ const float MIN_ROZUMNE_RPM = 500.0;
 const float MAX_SKOK_RPM = 5000.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 1500.0;
 
-// Když 200 ms nic nepřijde, motor považujem za zdechlý.
+// Když 200 ms nic nepřijde, motor chcípl.
 const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL;
 
-// --- Startovní logo ---
+// --- Welcome logo ---
 const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 2000UL;
 const byte LOGO_POCET_BLIKNUTI = 4;
 

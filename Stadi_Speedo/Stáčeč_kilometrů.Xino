@@ -1,48 +1,69 @@
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <Wire.h>
+#include "U8g2lib.h"
 
 // ============================================================
-//  JEDNORÁZOVÁ UTILITKA: nastavení počátečního stavu ODO
-// ============================================================
-//
-//  POUŽITÍ:
-//  1) Uprav hodnotu ODO_KM níže na to, co chceš nastavit.
-//  2) Nahraj TENTO soubor do desky (místo hlavního programu
-//     tachometru).
-//  3) Otevři Serial Monitor (9600 baud) - potvrdí se zápis.
-//  4) Nahraj zpátky hlavní program tachometru.
-//
-//  Musí sedět se stejnými konstantami (adresy, rozsah), jaké
-//  používá hlavní program tachometr.ino - jinak by si hlavní
-//  program přečetl hodnotu ze špatného místa.
+//   JEDNORÁZOVÁ UTILITKA: nastavení počátečního stavu ODO  V2
 // ============================================================
 
-// <<< SEM NAPIŠ POŽADOVANÝ NÁJEZD >>>
+// <<< SEM NAPIŠ POŽADOVANÝ NÁJEZD (v km) >>>
 const unsigned long ODO_KM = 1042;
 
-// --- Musí odpovídat hlavnímu programu tachometr.ino ---
+// --- Konstanty (odpovídají hlavnímu programu) ---
 const int ODO_ADR_START = 0;
 const int ODO_ADR_KONEC = 252;   // 64 pozic po 4 bajtech
 
+// Inicializace displeje
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+
+void vipotvrzeniNaDisplej(bool uspeh, unsigned long km)
+{
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_6x10_tf);
+
+  if (uspeh)
+  {
+    u8g2.setCursor(0, 15);
+    u8g2.print("---------------------");
+    u8g2.setCursor(15, 30);
+    u8g2.print("POTOCHY ZTOCENY!");
+    u8g2.setCursor(0, 45);
+    u8g2.print("---------------------");
+    u8g2.setCursor(20, 60);
+    u8g2.print("ODO SET: ");
+    u8g2.print(km);
+    u8g2.print(" km");
+  }
+  else
+  {
+    u8g2.setCursor(20, 35);
+    u8g2.print("EEPROM ERROR!");
+  }
+
+  u8g2.sendBuffer();
+}
 
 void setup()
 {
   Serial.begin(9600);
-  while (!Serial) { /* počkej na otevření Serial Monitoru (jen u desek, kde je potřeba) */ }
+  u8g2.begin();
+
+  // První vizuální info na displej
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_6x10_tf);
+  u8g2.setCursor(10, 35);
+  u8g2.print("ZAPISUJEM ODO...");
+  u8g2.sendBuffer();
 
   unsigned long odoMetry = ODO_KM * 1000UL;
 
-  Serial.println(F("Mazu stare hodnoty ODO v EEPROM..."));
+  Serial.println(F("Mazu cele ODO pole v EEPROM..."));
 
-  // Nejdřív vymažeme (nastavíme na "prázdno") všechny pozice,
-  // kam hlavní program ukládá ODO. Hlavní program totiž při
-  // startu bere NEJVYŠŠÍ nalezenou hodnotu ze všech pozic -
-  // kdybychom nevymazali staré, mohla by tam zůstat vyšší
-  // hodnota, než tu novou, kterou chceme nastavit.
-  for (int adr = ODO_ADR_START; adr <= ODO_ADR_KONEC; adr += 4)
+  // Natvrdo přepíšeme každý bajt na 0xFF (vymaže se zbytek staré kruhové paměti)
+  for (int i = ODO_ADR_START; i <= ODO_ADR_KONEC + 3; i++)
   {
-    unsigned long prazdno = 0xFFFFFFFFUL;
-    EEPROM.put(adr, prazdno);
+    EEPROM.write(i, 0xFF);
   }
 
   Serial.print(F("Zapisuji novou hodnotu ODO: "));
@@ -51,28 +72,26 @@ void setup()
   Serial.print(odoMetry);
   Serial.println(F(" m)"));
 
-  // Zapíšeme na první pozici - hlavní program si ji odtud
-  // při startu normálně přečte a bude v ní dál pokračovat
-  // (round-robin ukládání poběží dál od téhle adresy).
+  // Zápis nového nájezdu na nultou adresu
   EEPROM.put(ODO_ADR_START, odoMetry);
 
-  // Kontrolní zpětné čtení, ať víme jistě, že se zápis povedl.
+  // Kontrola správnosti ZÁPISU
   unsigned long kontrola = 0;
   EEPROM.get(ODO_ADR_START, kontrola);
 
   if (kontrola == odoMetry)
   {
     Serial.println(F("HOTOVO. Zapis probehl uspesne."));
+    vipotvrzeniNaDisplej(true, ODO_KM);
   }
   else
   {
-    Serial.println(F("CHYBA! Precteno neco jineho, nez bylo zapsano."));
+    Serial.println(F("CHYBA! Precteno neco jineho."));
+    vipotvrzeniNaDisplej(false, 0);
   }
-
-  Serial.println(F("Ted muzes nahrat zpatky hlavni program tachometru."));
 }
 
 void loop()
 {
-  // Nic - je to jednorázová utilitka.
+  // Mrtvá smyčka – hotovo
 }
