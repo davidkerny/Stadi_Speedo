@@ -1,0 +1,103 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include "U8g2lib.h"
+#include <EEPROM.h>
+#include <avr/boot.h>
+
+// ============================================================
+//  DIAGNOSTIKA - fuse bity + surový obsah EEPROM
+// ============================================================
+//
+//  Ukáže na displeji:
+//  1) Skutečnou hodnotu HIGH fuse bytu a jestli je EESAVE
+//     (bit 3) opravdu naprogramovaný (= EEPROM retained).
+//  2) Prvních 8 pozic ODO v EEPROM (adresa: hodnota v hex),
+//     ať vidíme přesně, co tam je - smazáno (0xFFFFFFFF),
+//     stará hodnota, nebo něco jiného.
+//
+//  Obrazovky se střídají samy po 4 sekundách, žádný vstup
+//  není potřeba.
+// ============================================================
+
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+
+const int ODO_ADR_START = 0;
+const int POCET_ZOBRAZENYCH_POZIC = 8;  // adresy 0,4,8,...,28
+
+void setup()
+{
+  u8g2.begin();
+}
+
+void ukazFuse()
+{
+  // Čtení fuse bitů přímo z čipu - žádné hádání, přesně to,
+  // co v něm skutečně je naprogramované PRÁVĚ TEĎ.
+  uint8_t hfuse = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);
+  uint8_t lfuse = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);
+  uint8_t efuse = boot_lock_fuse_bits_get(GET_EXTENDED_FUSE_BITS);
+
+  // EESAVE je bit 3 (0x08) v HIGH fuse. Fuse bity jsou u AVR
+  // "aktivní v nule" - EESAVE=0 znamená naprogramováno
+  // (= EEPROM retained), EESAVE=1 znamená nenaprogramováno
+  // (= EEPROM se maže při chip erase).
+  bool eepromRetained = (hfuse & 0x08) == 0;
+
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_6x10_tf);
+
+  char radek[24];
+
+  u8g2.setCursor(0, 10);
+  snprintf(radek, sizeof(radek), "lfuse: 0x%02X", lfuse);
+  u8g2.print(radek);
+
+  u8g2.setCursor(0, 22);
+  snprintf(radek, sizeof(radek), "hfuse: 0x%02X", hfuse);
+  u8g2.print(radek);
+
+  u8g2.setCursor(0, 34);
+  snprintf(radek, sizeof(radek), "efuse: 0x%02X", efuse);
+  u8g2.print(radek);
+
+  u8g2.setCursor(0, 50);
+  u8g2.print("EESAVE (bit3 hfuse):");
+
+  u8g2.setCursor(0, 62);
+  u8g2.print(eepromRetained ? "RETAINED = ANO" : "RETAINED = NE!");
+
+  u8g2.sendBuffer();
+}
+
+void ukazEepromDump()
+{
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_6x10_tf);
+
+  u8g2.setCursor(0, 9);
+  u8g2.print("ODO EEPROM (adr:hex)");
+
+  for (int i = 0; i < POCET_ZOBRAZENYCH_POZIC; i++)
+  {
+    int adr = ODO_ADR_START + i * 4;
+    unsigned long hodnota = 0;
+    EEPROM.get(adr, hodnota);
+
+    char radek[24];
+    snprintf(radek, sizeof(radek), "%3d: 0x%08lX", adr, hodnota);
+
+    u8g2.setCursor(0, 9 + (i + 1) * 7);
+    u8g2.print(radek);
+  }
+
+  u8g2.sendBuffer();
+}
+
+void loop()
+{
+  ukazFuse();
+  delay(4000);
+
+  ukazEepromDump();
+  delay(4000);
+}

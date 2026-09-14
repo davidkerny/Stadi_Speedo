@@ -9,12 +9,29 @@
 
 const char FW_VERZE[] = "Stadi MultiGauge V1.2";
 
-//  Speedo furt čte kolo na D2.
-//  Tacho navíc čte otáčky motoru na D3 (INT1).
-//  KM/H + RPM ve stovkách (50 = 5000 RPM, 70 = 7000 RPM.)
+//  Speedo furt čte kolo na D2. = KM/H
+//  Tacho navíc čte otáčky motoru na D3 = RPM
+//  RPM ve stovkách (50 = 5000 RPM, 70 = 7000 RPM.
 //  ODOmetr (v EEPROM) a TRIP (v RAM)
 //  MAX RPM ani MTH tady nejsou, bo na to kašlem.
 // ============================================================
+
+// 1) NASTAVENÍ
+// 2) STAV PROGRAMU
+// 3) MĚŘENÍ NAPÁJENÍ (Vcc)
+// 4) EEPROM - ukládání ODO
+// 5) PŘERUŠENÍ - SPEEDO
+// 6) PŘERUŠENÍ - TACHO
+// 7) FILTR SPEEDA
+// 8) FILTR TACHA
+// 9) ÚVODNÍ LOGO
+// 10) HLAVNÍ SMYČKA - SETUP
+// 11) ZPRACOVÁNÍ SPEEDA
+// 12) ZPRACOVÁNÍ TACHA
+// 13) KONTROLA ZASTAVENÍ SPEEDA
+// 14) KONTROLA ZASTAVENÍ TACHA
+// 15) LOOP
+// 16) DISPLEJ
 
 // ============================================================
 // 1) NASTAVENÍ
@@ -25,6 +42,8 @@ const char FW_VERZE[] = "Stadi MultiGauge V1.2";
 //U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 //Init OLED Laskakit 1.3"
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+//Init OLED placatej zmrd 0.91"
+//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
 
 // --- Speedo snímač kola (INT0) ---
@@ -660,7 +679,7 @@ void vykresliDashboard()
   unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
 
   // ----------------------------------------------------------
-  // Malý údaj s otáčkama vpravo nahoře (ve stovkách RPM).
+  // RPM vpravo nahoře (ve stovkách RPM).
   // Např. 8000 RPM = 80, 11200 RPM = 112
   // ----------------------------------------------------------
   u8g2.setFont(u8g2_font_logisoso24_tn);
