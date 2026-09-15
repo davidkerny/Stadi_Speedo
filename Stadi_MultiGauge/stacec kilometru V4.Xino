@@ -1,0 +1,121 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include "U8g2lib.h"
+#include <EEPROM.h>
+
+// ============================================================
+//   JEDNODUCHÝ ZÁPIS ODO - Stadi MultiGauge
+// ============================================================
+
+// <<< SEM NAPIŠ POŽADOVANÝ NÁJEZD V KM >>>
+const unsigned long NOVE_ODO_KM = 1001;
+
+// --- Musí sedět 1:1 s hlavním firmwarem ---
+const int ODO_ADR_START = 0;
+const int ODO_ADR_KONEC = 252; // 64 pozic po 4 bajtech
+const unsigned long ODO_FYZICKY_STROP_M = 100000000UL;      // 100 000 km
+const unsigned long ODO_MAX_SKOK_MEZI_BUNKAMI_M = 1000000UL; // 1 000 km
+
+// Displej LaskaKit 1.3" SH1106
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+
+// Pročištění zablokované I2C sběrnice po resetu
+void i2c_bus_clear()
+{
+  pinMode(SDA, INPUT_PULLUP);
+  pinMode(SCL, INPUT_PULLUP);
+  delayMicroseconds(100);
+
+  pinMode(SCL, OUTPUT);
+  for (int i = 0; i < 9; i++)
+  {
+    digitalWrite(SCL, LOW);
+    delayMicroseconds(10);
+    digitalWrite(SCL, HIGH);
+    delayMicroseconds(10);
+  }
+  pinMode(SDA, INPUT_PULLUP);
+}
+
+// Přesná kopie čtecí logiky z hlavního firmwaru
+unsigned long simulujCteniOdoJakoFirmware()
+{
+  unsigned long nejvyssiPlatnaHodnota = 0;
+
+  for (int adr = ODO_ADR_START; adr <= ODO_ADR_KONEC; adr += 4)
+  {
+    unsigned long hodnota = 0;
+    EEPROM.get(adr, hodnota);
+
+    if (hodnota == 0xFFFFFFFFUL) continue;
+    if (hodnota > ODO_FYZICKY_STROP_M) continue;
+
+    bool jePodezreleVysoka =
+      nejvyssiPlatnaHodnota > 0 &&
+      hodnota > nejvyssiPlatnaHodnota + ODO_MAX_SKOK_MEZI_BUNKAMI_M;
+
+    if (jePodezreleVysoka) continue;
+
+    if (hodnota >= nejvyssiPlatnaHodnota)
+    {
+      nejvyssiPlatnaHodnota = hodnota;
+    }
+  }
+
+  return nejvyssiPlatnaHodnota;
+}
+
+void setup()
+{
+  // 1. Záchrana I2C po resetu
+  i2c_bus_clear();
+
+  // 2. Mazání celého bloku ODO (adresy 0 až 255)
+  for (int i = ODO_ADR_START; i <= ODO_ADR_KONEC + 3; i++)
+  {
+    EEPROM.write(i, 0xFF);
+  }
+
+  // 3. Zápis nové hodnoty na adresu 0
+  unsigned long noveOdoM = NOVE_ODO_KM * 1000UL;
+  EEPROM.put(ODO_ADR_START, noveOdoM);
+
+  // 4. Verifikace
+  unsigned long precteno = simulujCteniOdoJakoFirmware();
+  bool uspech = (precteno == noveOdoM);
+
+  // 5. Zobrazení výsledku na OLED
+  u8g2.begin();
+  u8g2.clearBuffer();
+  
+  if (uspech)
+  {
+    u8g2.setFont(u8g2_font_7x14_tf);
+    u8g2.setCursor(0, 20);
+    u8g2.print("ODO STOCENO OK");
+
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.setCursor(0, 45);
+    u8g2.print("Nove ODO: ");
+    u8g2.print(precteno / 1000UL);
+    u8g2.print(" km");
+  }
+  else
+  {
+    u8g2.setFont(u8g2_font_7x14_tf);
+    u8g2.setCursor(0, 20);
+    u8g2.print("CHYBA ZAPISU!");
+
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.setCursor(0, 45);
+    u8g2.print("Precteno: ");
+    u8g2.print(precteno);
+  }
+
+  u8g2.sendBuffer();
+}
+
+void loop()
+{
+  // Mrtvá smyčka – hotovo
+}
