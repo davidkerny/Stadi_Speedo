@@ -3,6 +3,21 @@
 #include "U8g2lib.h"
 #include <EEPROM.h>
 #include <avr/wdt.h>
+
+// ============================================================
+// DIAGNOSTICKÁ VERZE - TACHO
+// ============================================================
+// Tato verze nemění vlastní výpočet tacha.
+// Na displeji místo běžného dashboardu ukazuje:
+// RAW = všechny hrany přijaté na D3 za poslední 1 s
+// OK  = hrany, které prošly MIN_MEZERA_TACHO_US
+// Hz  = frekvence přijatých pulzů
+// dt  = poslední přijatá perioda
+// R3/R5/R10 = orientační otáčky pro 3/5/10 pulzů na otáčku
+//
+// Cíl: zjistit skutečnou frekvenci pulzů a ověřit,
+// zda ve vysokých otáčkách pulzy nezmizí.
+// ============================================================
 #include <avr/interrupt.h>
 #include "stadionlogo.h"
 
@@ -163,6 +178,16 @@ volatile unsigned long tachoIsrCasPoslednihoPulzuUs = 0;
 volatile unsigned long tachoIsrDelkaPoslednihoIntervaluUs = 0;
 volatile bool tachoIsrMameNovyPulz = false;
 
+// -- Diagnostika tacha --
+volatile unsigned long tachoIsrPocetRawPulzu = 0;
+volatile unsigned long tachoIsrPocetPrijatychPulzu = 0;
+
+unsigned long diagnostikaTachoCas = 0;
+unsigned long diagnostikaRawPulzyZaSekundu = 0;
+unsigned long diagnostikaPrijatePulzyZaSekundu = 0;
+unsigned long diagnostikaIntervalUs = 0;
+float diagnostikaHz = 0.0;
+
 // -- Heartbeat LED (diagnostika, D13) --
 volatile uint8_t heartbeatPocitadloPreruseni = 0;
 
@@ -281,6 +306,9 @@ void snimacTachoPreruseni()
 {
   unsigned long ted = micros();
 
+  // Diagnostika: každá hrana, která vůbec dorazí na D3.
+  tachoIsrPocetRawPulzu++;
+
   if (tachoIsrCasPoslednihoPulzuUs == 0)
   {
     tachoIsrCasPoslednihoPulzuUs = ted;
@@ -294,6 +322,9 @@ void snimacTachoPreruseni()
   {
     return;
   }
+
+  // Diagnostika: pulz prošel minimální mezerou.
+  tachoIsrPocetPrijatychPulzu++;
 
   tachoIsrDelkaPoslednihoIntervaluUs = interval;
   tachoIsrCasPoslednihoPulzuUs = ted;
@@ -698,6 +729,9 @@ void loop()
 
   unsigned long ted = millis();
 
+  // Diagnostika běží nezávisle na intervalu vykreslování displeje.
+  aktualizujDiagnostikuTacha();
+
   if (ted - displejNaposledyCas >
       DISPLEJ_INTERVAL_MS)
   {
@@ -707,7 +741,51 @@ void loop()
 }
 
 // ============================================================
-// 16) DISPLEJ
+// 16) DIAGNOSTIKA TACHA
+// ============================================================
+//
+// Na displeji ukazuje:
+// RAW = všechny hrany, které dorazily na D3 za 1 s
+// OK  = hrany, které prošly MIN_MEZERA_TACHO_US
+// Hz  = přijaté pulzy za sekundu
+// dt  = poslední přijatá perioda v us
+// R3/R5/R10 = orientační RPM při 3/5/10 pulzech na otáčku
+//
+// Tohle je určeno hlavně pro zjištění, jestli ve vysokých otáčkách
+// pulzy mizí a kolik jich skutečně přichází na vstup D3.
+// ============================================================
+
+void aktualizujDiagnostikuTacha()
+{
+  unsigned long ted = millis();
+
+  if (ted - diagnostikaTachoCas < 1000UL)
+  {
+    return;
+  }
+
+  diagnostikaTachoCas = ted;
+
+  noInterrupts();
+  diagnostikaRawPulzyZaSekundu = tachoIsrPocetRawPulzu;
+  diagnostikaPrijatePulzyZaSekundu = tachoIsrPocetPrijatychPulzu;
+  tachoIsrPocetRawPulzu = 0;
+  tachoIsrPocetPrijatychPulzu = 0;
+  diagnostikaIntervalUs = tachoIsrDelkaPoslednihoIntervaluUs;
+  interrupts();
+
+  if (diagnostikaIntervalUs > 0)
+  {
+    diagnostikaHz = 1000000.0 / diagnostikaIntervalUs;
+  }
+  else
+  {
+    diagnostikaHz = 0.0;
+  }
+}
+
+// ============================================================
+// 17) DISPLEJ
 // ============================================================
 
 // --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
@@ -715,114 +793,49 @@ void loop()
 
 void vykresliDashboard()
 {
+  aktualizujDiagnostikuTacha();
+
   u8g2.clearBuffer();
 
-  // Aplikace násobiče pro testovací účely
-  unsigned int testRpm = zobrazeneRpm * TEST_MULTIPLIER;
-  unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
+  u8g2.setFont(u8g2_font_6x10_tf);
 
-  // ----------------------------------------------------------
-  // RPM vpravo nahoře (ve stovkách RPM).
-  // Např. 8000 RPM = 80, 11200 RPM = 112
-  // ----------------------------------------------------------
-  u8g2.setFont(u8g2_font_logisoso24_tn);
+  // Řádek 1: počet všech hran za poslední sekundu.
+  u8g2.setCursor(0, 10);
+  u8g2.print("RAW:");
+  u8g2.print(diagnostikaRawPulzyZaSekundu);
 
-  // Převod na stovky RPM (dělení 100)
-  int rpmStovky = testRpm / 100;
+  // Řádek 2: počet hran, které prošly debounce/minimální mezerou.
+  u8g2.setCursor(0, 21);
+  u8g2.print("OK :");
+  u8g2.print(diagnostikaPrijatePulzyZaSekundu);
 
-  // Formátování textu na 2 až 3 cifry (včetně vodicí nuly pro <10)
-  char rpmText[8];
-  if (rpmStovky < 10)
-  {
-    snprintf(rpmText, sizeof(rpmText), "0%d", rpmStovky);
-  }
-  else
-  {
-    snprintf(rpmText, sizeof(rpmText), "%d", rpmStovky);
-  }
+  // Řádek 3: frekvence přijatých pulzů.
+  u8g2.setCursor(0, 32);
+  u8g2.print("Hz :");
+  u8g2.print(diagnostikaHz, 1);
 
-  // --- POLOHOVÁNÍ RPM (upravuj podle potřeby X, Y) ---
-  if (rpmStovky < 100)
-  {
-    // Pro dvoumístné číslo (např. "00", "10", "80")
-    u8g2.setCursor(99, 31); 
-  }
-  else
-  {
-    // Pro třímístné číslo (např. "112", "150")
-    u8g2.setCursor(85, 31); 
-  }
-  u8g2.print(rpmText);
+  // Řádek 4: poslední perioda mezi přijatými pulzy.
+  u8g2.setCursor(0, 43);
+  u8g2.print("dt :");
+  u8g2.print(diagnostikaIntervalUs);
+  u8g2.print(" us");
 
-  // ----------------------------------------------------------
-  // Velké číslo rychlosti.
-  // ----------------------------------------------------------
-  u8g2.setFont(u8g2_font_logisoso58_tn);
+  // Řádek 5/6: co by stejná frekvence znamenala pro 3, 5 a 10 pulzů/otáčku.
+  float rpm3 = diagnostikaHz * 60.0 / 3.0;
+  float rpm5 = diagnostikaHz * 60.0 / 5.0;
+  float rpm10 = diagnostikaHz * 60.0 / 10.0;
 
-  if (testRychlost < 10)
-  {
-    u8g2.setCursor(37, 58);
-  }
-  else if (testRychlost < 100)
-  {
-    u8g2.setCursor(6, 58);
-  }
-  else
-  {
-    u8g2.setCursor(-20, 58);
-  }
-  u8g2.print(testRychlost);
+  u8g2.setCursor(0, 54);
+  u8g2.print("R3:");
+  u8g2.print((unsigned long)(rpm3 + 0.5));
 
-  // ----------------------------------------------------------
-  // ODO, TRIP a text rpm (zobrazují se pouze při rychlosti <= 9 km/h)
-  // ----------------------------------------------------------
-  if (testRychlost <= 9)
-  {
-    u8g2.setFont(u8g2_font_6x10_tf);
+  u8g2.setCursor(64, 54);
+  u8g2.print("R5:");
+  u8g2.print((unsigned long)(rpm5 + 0.5));
 
-     // Popisek x100.
-     //u8g2.setCursor(95, 51);
-     //u8g2.print("x100");
-     
-    // Popisek rpm.
-     u8g2.setCursor(103, 41);
-     u8g2.print("rpm");
-
-    // ODO
-    u8g2.setCursor(0, 64);
-    u8g2.print(odoMetry / 1000);
-
-    // TRIP
-    float tripKm = tripMetry / 1000.0;
-
-    char cisloTripu[8];
-    dtostrf(tripKm, 4, 1, cisloTripu);
-
-    char *zacatekCisla = cisloTripu;
-
-    while (*zacatekCisla == ' ')
-    {
-      zacatekCisla++;
-    }
-
-    char tripText[12];
-
-    snprintf(
-      tripText,
-      sizeof(tripText),
-      "t %s",
-      zacatekCisla
-    );
-
-    int sirkaTextu = u8g2.getStrWidth(tripText);
-
-    u8g2.setCursor(
-      128 - sirkaTextu,
-      64
-    );
-
-    u8g2.print(tripText);
-  }
+  u8g2.setCursor(0, 64);
+  u8g2.print("R10:");
+  u8g2.print((unsigned long)(rpm10 + 0.5));
 
   u8g2.sendBuffer();
 }

@@ -87,7 +87,7 @@ const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 1500.0;
 const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL;
 
 // --- Welcome logo ---
-const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1990UL;
+const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 2000UL;
 const byte LOGO_POCET_BLIKNUTI = 4;
 
 // --- Kalman speedo ---

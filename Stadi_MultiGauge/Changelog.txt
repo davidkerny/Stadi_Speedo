@@ -1,4 +1,0 @@
-Stadi MultiGauge
-
-1.0 initial
-1.2 definice pro displej Laskakit 1.3"
