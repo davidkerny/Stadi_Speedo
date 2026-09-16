@@ -1,0 +1,27 @@
+Stadi AnaloGauge X27
+
+
+1.0 initial
+Sketch uses 22904 bytes (70%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for local variables.
+
+
+
+X27_KROKU_CELKEM = 315 — je to obvyklá hodnota pro tuhle rodinu motorků, ale je to 
+odhad, ne fakt pro tvůj konkrétní kus. Zkalibruj to prakticky: zavolej 
+nastavRucickuKmH(100) a koukni, kde ručička doopravdy skončí na stupnici. 
+Pokud nedojede/přejede, uprav konstantu úměrně.
+
+X27_MIN_KROK_US = 1200 — pokud ručička cuká, vibruje nebo neposlouchá plynule, 
+zvyš tohle číslo (pomalejší, ale spolehlivější). Přidat plynulou akceleraci 
+(jako to dělá knihovna SwitecX25) by šlo taky, ale schválně jsem to nechal 
+jako jednoduchý konstantní krok — čitelnost před chytristikou, jak jsi chtěl.
+
+X27_OBRACENY_SMER — pokud po prvním zapnutí jede ručička opačně (k 100 místo k 0), 
+přepni na true místo přepojování kabelů.
+Homing (hometniRucicku()) běží v setup() ještě před wdt_enable(), takže ho watchdog 
+neruší, i když trvá skoro sekundu (315+20 kroků × 3 ms).
+
+Tacho/RPM zpracování jsem nechal plně funkční na pozadí (ISR, filtr, zobrazeneRpm) — 
+jen se teď nikde nezobrazuje. Je to připravené pro případnou druhou ručičku (tacho), 
+stačí by přibyla analogická sekce X27 s vlastními piny.
