@@ -25,3 +25,7 @@ neruší, i když trvá skoro sekundu (315+20 kroků × 3 ms).
 Tacho/RPM zpracování jsem nechal plně funkční na pozadí (ISR, filtr, zobrazeneRpm) — 
 jen se teď nikde nezobrazuje. Je to připravené pro případnou druhou ručičku (tacho), 
 stačí by přibyla analogická sekce X27 s vlastními piny.
+
+
+
+Stepper_Tester má hejbat ručičkou budíku na ozkoušení, že je krokáč napojenej správně

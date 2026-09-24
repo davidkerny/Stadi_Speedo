@@ -1,0 +1,102 @@
+// ============================================================
+// X27 589 - TEST MOTORKU
+// ============================================================
+//
+// Zapojeni:
+//   A0 -> faze A
+//   A1 -> faze B
+//   D4 -> faze C
+//   D5 -> faze D
+//
+// Po startu: pomalu jednim smerem -> pauza -> zpet -> pauza.
+//
+// POZOR: Tento sketch predpoklada bezpecne proudove zapojeni
+// X27 589. Pokud pouzivas driver, motor pripoj pres driver.
+// ============================================================
+
+const byte X27_A = A0;
+const byte X27_B = A1;
+const byte X27_C = 4;
+const byte X27_D = 5;
+
+// Pocet testovacich kroku jednim smerem
+const int TEST_KROKY = 300;
+
+// Pauza mezi kroky: vetsi = pomalejsi pohyb
+const unsigned int KROK_PAUSA_MS = 8;
+
+// Pauza na konci pohybu
+const unsigned long PAUZA_MS = 1000;
+
+void faze(byte a, byte b, byte c, byte d)
+{
+  digitalWrite(X27_A, a);
+  digitalWrite(X27_B, b);
+  digitalWrite(X27_C, c);
+  digitalWrite(X27_D, d);
+}
+
+void krokDoprava()
+{
+  faze(HIGH, LOW,  LOW,  LOW);
+  delay(KROK_PAUSA_MS);
+
+  faze(LOW,  HIGH, LOW,  LOW);
+  delay(KROK_PAUSA_MS);
+
+  faze(LOW,  LOW,  HIGH, LOW);
+  delay(KROK_PAUSA_MS);
+
+  faze(LOW,  LOW,  LOW,  HIGH);
+  delay(KROK_PAUSA_MS);
+}
+
+void krokDoleva()
+{
+  faze(LOW,  LOW,  LOW,  HIGH);
+  delay(KROK_PAUSA_MS);
+
+  faze(LOW,  LOW,  HIGH, LOW);
+  delay(KROK_PAUSA_MS);
+
+  faze(LOW,  HIGH, LOW,  LOW);
+  delay(KROK_PAUSA_MS);
+
+  faze(HIGH, LOW,  LOW,  LOW);
+  delay(KROK_PAUSA_MS);
+}
+
+void vseVypni()
+{
+  faze(LOW, LOW, LOW, LOW);
+}
+
+void setup()
+{
+  pinMode(X27_A, OUTPUT);
+  pinMode(X27_B, OUTPUT);
+  pinMode(X27_C, OUTPUT);
+  pinMode(X27_D, OUTPUT);
+
+  vseVypni();
+  delay(1000);
+}
+
+void loop()
+{
+  for (int i = 0; i < TEST_KROKY; i++)
+  {
+    krokDoprava();
+  }
+
+  vseVypni();
+  delay(PAUZA_MS);
+
+  for (int i = 0; i < TEST_KROKY; i++)
+  {
+    krokDoleva();
+  }
+
+  vseVypni();
+  delay(PAUZA_MS);
+}
