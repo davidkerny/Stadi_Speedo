@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.3";
+const char FW_VERZE[] = "Stadi MultiGauge V1.4";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -87,8 +87,8 @@ const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 1500.0;
 const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL;
 
 // --- Welcome logo ---
-const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1990UL;
-const byte LOGO_POCET_BLIKNUTI = 4;
+const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1900UL;
+const byte LOGO_POCET_BLIKNUTI = 8;
 
 // --- Kalman speedo ---
 const float KALMAN_Q = 0.5;
@@ -483,6 +483,58 @@ void setup()
   // Některé bootloadery nechávaj watchdog po resetu běžet.
   wdt_disable();
 
+  wdt_enable(WDTO_2S);  // na zkoušku wačdog přesunut hned na začátek
+
+
+
+
+
+
+  // === I2C BUS CLEAR ===
+
+pinMode(SDA, INPUT_PULLUP);
+pinMode(SCL, INPUT_PULLUP);
+delayMicroseconds(10);
+
+bool byloZaseknute = (digitalRead(SDA) == LOW);
+
+if (byloZaseknute) {
+
+  // 9 hodinových pulzů
+  for (int i = 0; i < 9; i++) {
+    if (digitalRead(SDA) == HIGH) break; // Displej už pustil SDA, můžeme se na to vyjebat
+    pinMode(SCL, OUTPUT);
+    digitalWrite(SCL, LOW);
+    delayMicroseconds(5);
+
+    pinMode(SCL, INPUT_PULLUP);
+    delayMicroseconds(5);
+  }
+
+  // STOP podmínka — VŽDY, když jsme dělali clearing
+  pinMode(SCL, OUTPUT);
+  digitalWrite(SCL, LOW);       // SCL = LOW
+  delayMicroseconds(5);
+
+  pinMode(SDA, OUTPUT);
+  digitalWrite(SDA, LOW);       // SDA = LOW
+  delayMicroseconds(5);
+
+  pinMode(SCL, INPUT_PULLUP);   // SCL jde HIGH
+  delayMicroseconds(5);
+
+  pinMode(SDA, INPUT_PULLUP);   // SDA LOW->HIGH při SCL=HIGH = STOP
+  delayMicroseconds(5);
+}
+
+// Obnovení běžného I2C režimu
+pinMode(SDA, INPUT_PULLUP);
+pinMode(SCL, INPUT_PULLUP);
+
+
+  
+  
+
   u8g2.begin();
 
   // Speedo: D2 / INT0.
@@ -492,7 +544,7 @@ void setup()
   pinMode(TACHO_PIN, INPUT_PULLUP);
 
   zobrazUvodniLogo();
-  
+
   // Heartbeat běží od teď dál, nezávisle na zbytku programu.
   nastavHeartbeatTimer();
 
@@ -517,7 +569,8 @@ void setup()
 
   vykresliDashboard();
 
-  wdt_enable(WDTO_2S);
+//  wdt_enable(WDTO_2S);   PRESUNUTO na zacatek setupu
+
 }
 
 // ============================================================

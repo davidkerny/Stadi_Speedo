@@ -1,0 +1,8 @@
+V1.3 Initial
+
+V1.4 
+- Watchdog spuštěn už na začátku setupu, nutno 
+vyzkoušet jeslti nebude timeoutovat při běžném provozu
+- I2C timeout nejde udělat. tak aspoň "odseknutí", I2C BUS CLEAR devíti pulzy
+
+- během loga 8x blikne LED, pro rozlišení od blikání heartbeatu
