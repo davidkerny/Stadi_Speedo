@@ -6,15 +6,14 @@ Sketch uses 22904 bytes (70%) of program storage space. Maximum is 32384 bytes.
 Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for local variables.
 
 1.1  kalibrace krokáče, funkční ovládací sekvence
-
+1.2  add. minimalni kilometry na budíku  +úklid a přesnější kalibrace na fichtl stupnici
+		max. 103, min 4km
 
 
 
 X27_KROKU_CELKEM = 160 se zda default. (*4)
+X27_MIN_KROK_US = rychlost krokovani, zda se ze 2000 je bezpecna hodnota. funguje cca od 1200
 
-X27_MIN_KROK_US = rychlost krokovani, zda se ze 2000 je bezpecna hodnota. funguje cca od 1300
-
-X27_MAX_KMH = 100.0 zdá se, odpovídá stupnici fichtl budíku.
 
 Tacho/RPM zpracování jsem nechal plně funkční na pozadí (ISR, filtr, zobrazeneRpm) — 
 jen se teď nikde nezobrazuje. Je to připravené pro případnou druhou ručičku (tacho), 
@@ -26,4 +25,13 @@ _________________
 
 Stepper_Tester hejbe ručičkou budíku sem-tam na ozkoušení, že je krokouš napojenej správně
 
+Stupnice_Tester jezdí ručičkou po nastavených hodnotách pro ověření validity ručička vs. stupnice
 
+
+
+
+
+oproti multigauge nemá: 
+- koeficient počet nasnímaných pulzů vs. rpm
+- heartbeat LED
+- I2C 9-pulzový defibrilátor

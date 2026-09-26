@@ -1,0 +1,165 @@
+// ============================================================
+// X27 168 - DIAGNOSTICKÝ TEST STUPNICE a RUČIČKY
+// ============================================================
+//
+// Po startu: homing (plný rozsah tam a zpět), pak najede
+// postupně na přednastavené hodnoty v KMH_SEKVENCE.
+//
+// Každá hodnota se podrží HOLD_MS, pak se jede na další.
+// Po poslední hodnotě se cyklus opakuje dokola.
+// ============================================================
+
+// --- PINY ---
+const byte X27_A = A0;
+const byte X27_B = 4;
+const byte X27_C = A1;
+const byte X27_D = 5;
+
+// --- ROZSAH STUPNICE ---
+const int   X27_KROKU_CELKEM = 159 * 4;   // celý rozsah (0..max)
+const float X27_MAX_KMH      = 103.0;     // max na ciferníku
+const float X27_MIN_KMH      = 4.0;       // min na ciferniku
+
+// --- ČASOVÁNÍ ---
+const unsigned long KROK_US        = 1500UL;   // pauza mezi kroky za běhu
+const unsigned long HOMING_KROK_US = 2000UL;   // pomalejší homing
+const unsigned long HOLD_MS        = 1200UL;   // jak dlouho držet hodnotu
+
+// --- SEKVENICE KMH, KTEROU CHCEŠ PROJET ---
+// Klidně si uprav podle potřeby.
+const float KMH_SEKVENCE[] = {
+  0,
+  10,
+  20,
+  30,
+  40,
+  50,
+  60,
+  70,
+  80,
+  90,
+  100,
+  108,
+  80,
+  60,
+  20,
+  0
+  
+};
+const int KMH_SEKVENCE_POCET =
+  sizeof(KMH_SEKVENCE) / sizeof(KMH_SEKVENCE[0]);
+
+// --- STAV ---
+long x27AktualniKrok = 0;
+
+// ============================================================
+// NÍZKÁ ÚROVEŇ - KROKY MOTORKU
+// ============================================================
+
+const uint8_t X27_SEKVENCE[4][4] = {
+  { 1, 0, 0, 0 },
+  { 0, 1, 0, 0 },
+  { 0, 0, 1, 0 },
+  { 0, 0, 0, 1 },
+};
+
+void provedKrokX27(long krok)
+{
+  int stav = (int)(((krok % 4) + 4) % 4);
+
+  digitalWrite(X27_A, X27_SEKVENCE[stav][0]);
+  digitalWrite(X27_B, X27_SEKVENCE[stav][1]);
+  digitalWrite(X27_C, X27_SEKVENCE[stav][2]);
+  digitalWrite(X27_D, X27_SEKVENCE[stav][3]);
+}
+
+// Otočí motorkem o "pocetKroku" kroků (záporné = opačně)
+// s danou pauzou mezi kroky.
+void otocO(long pocetKroku, unsigned long pauzaUs)
+{
+  long smer = (pocetKroku >= 0) ? 1 : -1;
+  long kolik = labs(pocetKroku);
+
+  for (long i = 0; i < kolik; i++)
+  {
+    x27AktualniKrok += smer;
+    provedKrokX27(x27AktualniKrok);
+    delayMicroseconds(pauzaUs);
+  }
+}
+
+// Převede km/h na kroky (stejný přepočet jako v hlavním FW)
+long kmhNaKroky(float kmh)
+{
+  if (kmh < 0) kmh = 0;
+  if (kmh > X27_MAX_KMH) kmh = X27_MAX_KMH;
+
+  if (kmh <= X27_MIN_KMH)
+  {
+    return 0;
+  }
+
+  float podil = (kmh - X27_MIN_KMH) / (X27_MAX_KMH - X27_MIN_KMH);
+  return (long)(podil * X27_KROKU_CELKEM + 0.5);
+}
+
+// ============================================================
+// HOMING
+// ============================================================
+
+void homing()
+{
+  // 1) Dojet na plný rozsah (tam)
+  otocO(X27_KROKU_CELKEM, HOMING_KROK_US);
+
+  // 2) Krátká pauza ať se mechanika uklidní
+  delay(150);
+
+  // 3) Zpátky na nulu
+  otocO(-X27_KROKU_CELKEM, HOMING_KROK_US);
+
+  // 4) Dorovnat případnou odchylku
+  x27AktualniKrok = 0;
+  provedKrokX27(x27AktualniKrok);
+}
+
+// ============================================================
+// NAJETÍ NA KONKRÉTNÍ KM/H
+// ============================================================
+
+void najedNaKmh(float kmh)
+{
+  long cil = kmhNaKroky(kmh);
+  long rozdil = cil - x27AktualniKrok;
+
+  otocO(rozdil, KROK_US);
+}
+
+// ============================================================
+// SETUP + LOOP
+// ============================================================
+
+void setup()
+{
+  pinMode(X27_A, OUTPUT);
+  pinMode(X27_B, OUTPUT);
+  pinMode(X27_C, OUTPUT);
+  pinMode(X27_D, OUTPUT);
+
+  // Ať motorek není v nesmyslném stavu
+  provedKrokX27(0);
+
+  delay(300);
+
+  // Zahomuj ručičku
+  homing();
+}
+
+void loop()
+{
+  for (int i = 0; i < KMH_SEKVENCE_POCET; i++)
+  {
+    najedNaKmh(KMH_SEKVENCE[i]);
+    delay(HOLD_MS);
+  }
+}

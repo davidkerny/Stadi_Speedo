@@ -1,5 +1,5 @@
 // ============================================================
-// X27 589 - TEST MOTORKU
+// X27 168 - TEST MOTORKU
 // ============================================================
 //
 // Zapojeni:
@@ -11,22 +11,25 @@
 // Po startu: pomalu jednim smerem -> pauza -> zpet -> pauza.
 //
 // POZOR: Tento sketch predpoklada bezpecne proudove zapojeni
-// X27 589. Pokud pouzivas driver, motor pripoj pres driver.
+// X27 168.
 // ============================================================
 
+
 const byte X27_A = A0;
-const byte X27_B = A1;
-const byte X27_C = 4;
+const byte X27_B = 4;
+const byte X27_C = A1;
 const byte X27_D = 5;
 
+
+
 // Pocet testovacich kroku jednim smerem
-const int TEST_KROKY = 300;
+const int TEST_KROKY = 160;
 
 // Pauza mezi kroky: vetsi = pomalejsi pohyb
-const unsigned int KROK_PAUSA_MS = 8;
+const unsigned int KROK_PAUSA_MS = 2;
 
 // Pauza na konci pohybu
-const unsigned long PAUZA_MS = 1000;
+const unsigned long PAUZA_MS = 100;
 
 void faze(byte a, byte b, byte c, byte d)
 {

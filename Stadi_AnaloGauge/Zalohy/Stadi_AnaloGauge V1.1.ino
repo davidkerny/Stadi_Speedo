@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.2";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.1 ";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -16,14 +16,13 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.2";
 //  pro budoucí druhou ručičku).
 //
 //  RYCHLOST se teď ukazuje analogově přes krokový motorek
-//  X27 168, co hejbe ručičkou na stupnici.
+//  X27 168 (jehla tachometru z auta/mopedu), ne digitálně.
 //
-//  Malý OLED (128x32) ukazuje jen: km/h textem (diagnostický/
+//  Malý OLED (128x32) ukazuje jen: km/h textem (záložní/
 //  kontrolní údaj), ODO (v EEPROM) a TRIP (v RAM).
 // ============================================================
 
 // 1)  NASTAVENÍ
-// 1B) NASTAVENÍ X27 168 - RUČIČKA SPEEDA
 // 2)  STAV PROGRAMU
 // 3)  MĚŘENÍ NAPÁJENÍ (Vcc)
 // 4)  EEPROM - ukládání ODO
@@ -45,6 +44,7 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.2";
 // 1) NASTAVENÍ
 // ============================================================
 
+
 //Init OLED klasika 0.96"
 //U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 //Init OLED Laskakit 1.3"
@@ -52,8 +52,6 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.2";
 //Init OLED placatej zmrd 0.91"
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
-// --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
-#define TEST_MULTIPLIER 1
 
 // --- Speedo snímač kola (INT0) ---
 const byte SENSOR_PIN = 2;
@@ -62,36 +60,49 @@ const byte SENSOR_PIN = 2;
 const float OBVOD_KOLA_M = 1.77;
 
 // --- Ochrana speeda proti rušení ---
-const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // Moped jede do 120 km/h. Rychlejší pulz ignorujem.
+
+// Moped jede do 120 km/h. Rychlejší pulz ignorujem.
+const unsigned long MIN_MEZERA_PULZU_US = 45000UL;
+
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
 const float MAX_SKOK_KMH = 25.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
-const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
-const float KALMAN_Q = 0.5;
-const float KALMAN_R = 8.0;
 
+const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 
 // --- Tacho snímač motor rpm (INT1) ---
 const byte TACHO_PIN = 3;
 
-const unsigned long MIN_MEZERA_TACHO_US = 2800UL; // Pulzy kratší než 2.8 ms zahazujem jako bordel od zapalování.
+// Tady berem 1 přijatý pulz = 1 otáčka motoru.
+// Pulzy kratší než 2.8 ms zahazujem jako bordel od zapalování.
+const unsigned long MIN_MEZERA_TACHO_US = 2800UL;
+
 const float MAX_ROZUMNE_RPM = 18000.0;
 const float MIN_ROZUMNE_RPM = 500.0;
 const float MAX_SKOK_RPM = 5000.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 1500.0;
-const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL; // Když 200 ms nic nepřijde, motor chcípl.
-const float TACHO_KALMAN_Q = 2.0; // Vyšší Q = rychlejší reakce na vrknutí plynem.
-const float TACHO_KALMAN_R = 8.0;
 
+// Když 200 ms nic nepřijde, motor chcípl.
+const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL;
 
 // --- Welcome logo ---
 const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 2000UL;
 const byte LOGO_POCET_BLIKNUTI = 4;
 
+// --- Kalman speedo ---
+const float KALMAN_Q = 0.5;
+const float KALMAN_R = 8.0;
+
+// --- Kalman tacho ---
+// Vyšší Q = rychlejší reakce na vrknutí plynem.
+const float TACHO_KALMAN_Q = 2.0;
+const float TACHO_KALMAN_R = 8.0;
+
 // --- EEPROM / ODO ---
 const int ODO_ADR_START = 0;
 const int ODO_ADR_KONEC = 252;
 const unsigned long KROK_ULOZENI_M = 100UL;
+
 const unsigned long ODO_FYZICKY_STROP_M = 100000000UL;
 const unsigned long ODO_MAX_SKOK_MEZI_BUNKAMI_M = 1000000UL;
 
@@ -103,8 +114,9 @@ const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
 
 // ============================================================
-// 1B) NASTAVENÍ X27 168 - RUČIČKA SPEEDA
+// X27 168 - RUČIČKA SPEEDA
 // ============================================================
+//
 
 const byte X27_A = A0;
 const byte X27_B = 4;
@@ -112,14 +124,19 @@ const byte X27_C = A1;
 const byte X27_D = 5;
 
 // Kolik kroků odpovídá CELÉMU rozsahu ručičky (0 až max)
-const int X27_KROKU_CELKEM = 159*4;  // *4 bo jeden krok je sekvence 4 kliků
+const int X27_KROKU_CELKEM = 160*4;  // *4 bo jeden krok je sekvence 4 kliků
 
-const float X27_MAX_KMH = 103.0;     // Rozsah stupnice ciferníku.
-const float X27_MIN_KMH = 4.0;       //  km/h, kdy ručička opustí doraz
+// Rozsah stupnice ciferníku.
+const float X27_MAX_KMH = 110.0;
 
-// Minimální doba mezi kroky  aka rychlost pohybu
+// Minimální doba mezi jednotlivými kroky za normálního běhu.
+// Moc rychle = motorek přeskakuje kroky / bzučí / neposlouchá.
+// Moc pomalu = ručička viditelně "leze" místo plynulého pohybu.
+// Když ručička cuká nebo vibruje místo hladkého pohybu, ZVYŠ
+// tohle číslo.
+
 const unsigned long X27_MIN_KROK_US = 2000UL;
-const unsigned long X27_HOMING_KROK_US = 1300UL;
+const unsigned long X27_HOMING_KROK_US = 4300UL;
 
 const bool X27_OBRACENY_SMER = false;
 
@@ -489,21 +506,17 @@ delay(100);
 //   nastavRucickuKmH(100);
 void nastavRucickuKmH(float hodnotaKmh)
 {
-  if (hodnotaKmh < 0) hodnotaKmh = 0;
-  if (hodnotaKmh > X27_MAX_KMH) hodnotaKmh = X27_MAX_KMH;
-
-  // Pod minimem = ručička na dorazu
-  if (hodnotaKmh <= X27_MIN_KMH)
+  if (hodnotaKmh < 0)
   {
-    x27CilovyKrok = 0;
-    return;
+    hodnotaKmh = 0;
+  }
+  if (hodnotaKmh > X27_MAX_KMH)
+  {
+    hodnotaKmh = X27_MAX_KMH;
   }
 
-  float podil =
-    (hodnotaKmh - X27_MIN_KMH) / (X27_MAX_KMH - X27_MIN_KMH);
-
   x27CilovyKrok =
-    (long)(podil * X27_KROKU_CELKEM + 0.5);
+    (long)((hodnotaKmh / X27_MAX_KMH) * X27_KROKU_CELKEM + 0.5);
 }
 
 // Volej z loop() při KAŽDÉM průchodu - sama si pohlídá časování
@@ -821,6 +834,9 @@ void loop()
 // ============================================================
 // 17) DISPLEJ
 // ============================================================
+
+// --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
+#define TEST_MULTIPLIER 1
 
 void vykresliDashboard()
 {
