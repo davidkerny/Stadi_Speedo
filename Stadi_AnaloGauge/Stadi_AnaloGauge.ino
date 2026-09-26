@@ -7,7 +7,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.0 ";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.1 ";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -15,7 +15,7 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.0 ";
 //  pro budoucí druhou ručičku).
 //
 //  RYCHLOST se teď ukazuje analogově přes krokový motorek
-//  X27 589 (jehla tachometru z auta/mopedu), ne digitálně.
+//  X27 168 (jehla tachometru z auta/mopedu), ne digitálně.
 //
 //  Malý OLED (128x32) ukazuje jen: km/h textem (záložní/
 //  kontrolní údaj), ODO (v EEPROM) a TRIP (v RAM).
@@ -29,7 +29,7 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.0 ";
 // 6)  PŘERUŠENÍ - TACHO
 // 7)  FILTR SPEEDA
 // 8)  FILTR TACHA
-// 9)  X27 589 - RUČIČKA SPEEDA
+// 9)  X27 168 - RUČIČKA SPEEDA
 // 10) ÚVODNÍ LOGO
 // 11) HLAVNÍ SMYČKA - SETUP
 // 12) ZPRACOVÁNÍ SPEEDA
@@ -48,7 +48,7 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.0 ";
 //U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 //Init OLED Laskakit 1.3"
 //U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-//Init OLED placatej zmrd 0.91" - TENHLE JE TEĎ AKTIVNÍ
+//Init OLED placatej zmrd 0.91"
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
 
@@ -113,50 +113,30 @@ const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
 
 // ============================================================
-// X27 589 - RUČIČKA SPEEDA
+// X27 168 - RUČIČKA SPEEDA
 // ============================================================
 //
-// X27 je 2fázový krokový motorek se 4 vývody (žádný společný
-// vodič) - každý pin jede přímo na jeden konec jedné cívky.
-// Piny A0/A1 = cívka 1, D4/D5 = cívka 2. Řídicí sekvence níž
-// (X27_SEKVENCE) je standardní 8stavová "půlkroková" tabulka
-// používaná i v knihovnách jako SwitecX25.
-//
-// DŮLEŽITÁ VLASTNOST X27: má vnitřní vratnou pružinu - bez
-// napájení se ručička sama vrátí na nulu. Díky tomu je homing
-// (najetí na nulu při startu) bezpečný i "na tvrdo": stačí
-// zajet o víc kroků, než je celý rozsah, motorek narazí na
-// mechanický doraz a jen tam neškodně prokluzuje.
 
-#define X27_A  A0
-#define X27_B  A1
-#define X27_C  4
-#define X27_D  5
+const byte X27_A = A0;
+const byte X27_B = 4;
+const byte X27_C = A1;
+const byte X27_D = 5;
 
-// Kolik kroků odpovídá CELÉMU rozsahu ručičky (0 až
-// X27_MAX_KMH). 315 je běžná hodnota pro X27.168/589, ale
-// KAŽDÝ konkrétní kus si vždycky zkalibruj - zkus poslat pár
-// desítek/stovek kroků a podle toho, kde skutečně skončí
-// ručička na stupnici, tuhle konstantu doladit.
-const int X27_KROKU_CELKEM = 315;
-
-// Kolik kroků navíc "natvrdo" zajet do dorazu při homingu -
-// rezerva, ať i při nepřesné kalibraci výše jistě dorazíme
-// na skutečnou nulu.
-const int X27_HOMING_REZERVA_KROKU = 20;
+// Kolik kroků odpovídá CELÉMU rozsahu ručičky (0 až max)
+const int X27_KROKU_CELKEM = 160*4;  // *4 bo jeden krok je sekvence 4 kliků
 
 // Rozsah stupnice ciferníku.
-const float X27_MAX_KMH = 100.0;
+const float X27_MAX_KMH = 110.0;
 
 // Minimální doba mezi jednotlivými kroky za normálního běhu.
 // Moc rychle = motorek přeskakuje kroky / bzučí / neposlouchá.
 // Moc pomalu = ručička viditelně "leze" místo plynulého pohybu.
 // Když ručička cuká nebo vibruje místo hladkého pohybu, ZVYŠ
 // tohle číslo.
-const unsigned long X27_MIN_KROK_US = 1200UL;
 
-// Pokud po zapojení jede ručička obráceně (k 100 misto k 0),
-// přepni na true - je to jednodušší než přepojovat kabely.
+const unsigned long X27_MIN_KROK_US = 2000UL;
+const unsigned long X27_HOMING_KROK_US = 4300UL;
+
 const bool X27_OBRACENY_SMER = false;
 
 // ============================================================
@@ -457,34 +437,29 @@ bool jePulzTachaDuveryhodny(float suroveRpm)
 }
 
 // ============================================================
-// 9) X27 589 - RUČIČKA SPEEDA
+// 9) X27 168 - RUČIČKA SPEEDA
 // ============================================================
 
-// Standardní 8stavová řídicí sekvence pro 2fázový krokový
-// motorek typu X27 (pořadí sloupců: X27_A, X27_B, X27_C, X27_D).
-// Postupným průchodem stavy 0->1->2->...->7->0 se motorek
+
+// Postupným průchodem stavy 0->1->2->4 se motorek
 // otáčí jedním směrem, opačným průchodem druhým směrem.
-const uint8_t X27_SEKVENCE[8][4] = {
-  { 1, 0, 1, 0 },
-  { 0, 0, 1, 0 },
-  { 0, 1, 1, 0 },
-  { 0, 1, 0, 0 },
-  { 0, 1, 0, 1 },
-  { 0, 0, 0, 1 },
-  { 1, 0, 0, 1 },
+const uint8_t X27_SEKVENCE[4][4] = {
   { 1, 0, 0, 0 },
+  { 0, 1, 0, 0 },
+  { 0, 0, 1, 0 },
+  { 0, 0, 0, 1 },
 };
 
 // Pošle na cívky napětí odpovídající danému kroku. "krok" může
 // být jakékoliv celé číslo (i záporné) - vezme se jen zbytek
-// po dělení 8, aby vždy vyšel platný index do tabulky.
+// po dělení 4, aby vždy vyšel platný index do tabulky.
 void provedKrokX27(long krok)
 {
-  int stav = (int)(((krok % 8) + 8) % 8);
+  int stav = (int)(((krok % 4) + 4) % 4);
 
   if (X27_OBRACENY_SMER)
   {
-    stav = 7 - stav;
+    stav = 3 - stav;
   }
 
   digitalWrite(X27_A, X27_SEKVENCE[stav][0]);
@@ -493,29 +468,31 @@ void provedKrokX27(long krok)
   digitalWrite(X27_D, X27_SEKVENCE[stav][3]);
 }
 
-// Homing - najetí na skutečnou nulu při startu. Provádí se
-// natvrdo (blokující delay), ale jen jednou v setup(), ještě
-// před zapnutím watchdogu, takže to nevadí.
-//
-// X27 má vnitřní vratnou pružinu, takže "přejetí" do
-// mechanického dorazu je bezpečné - motorek tam jen neškodně
-// prokluzuje. Proto zajedeme o dost víc kroků, než je celý
-// rozsah, a pak si prostě řekneme, že jsme na nule.
-void hometniRucicku()
+
+// Homing ručičky: zajede plný rozsah a zpátky na nulu.
+void HomingRucicky()
 {
-  const unsigned long HOMING_KROK_US = 3000UL;  // pomalu a jistě, je to jen jednou
 
-  long krokuKHomingu = X27_KROKU_CELKEM + X27_HOMING_REZERVA_KROKU;
+  // Dojet na plný rozsah.
+  for (long i = 0; i < X27_KROKU_CELKEM; i++)
+  {
+    x27AktualniKrok++;
+    provedKrokX27(x27AktualniKrok);
+    delayMicroseconds(X27_HOMING_KROK_US);
+  }
 
-  for (long i = 0; i < krokuKHomingu; i++)
+  //chvíli počkáme, ať to neni tak uspěchaný
+delay(100);
+
+  // A zpátky na nulu.
+  for (long i = 0; i < X27_KROKU_CELKEM; i++)
   {
     x27AktualniKrok--;
     provedKrokX27(x27AktualniKrok);
-    delayMicroseconds(HOMING_KROK_US);
+    delayMicroseconds(X27_HOMING_KROK_US);
   }
 
-  x27AktualniKrok = 0;
-  x27CilovyKrok = 0;
+  x27CilovyKrok = 0;  // ať se aktualizujRucicku() nesnaží znovu nikam jet
 }
 
 // Veřejné API - zavolej kdykoliv s požadovanou rychlostí,
@@ -636,9 +613,7 @@ void setup()
 
   zobrazUvodniLogo();
 
-  // Homing ručičky - najede na skutečnou nulu, ještě před
-  // zapnutím watchdogu (viz komentář u hometniRucicku()).
-  hometniRucicku();
+  HomingRucicky();
 
   nactiOdoZEEPROM();
   tripMetry = 0;
