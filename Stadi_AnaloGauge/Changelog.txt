@@ -2,8 +2,8 @@ Stadi AnaloGauge X27
 
 
 1.0 initial
-Sketch uses 22904 bytes (70%) of program storage space. Maximum is 32384 bytes.
-Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for local variables.
+	Sketch uses 22904 bytes (70%) of program storage space. Maximum is 32384 bytes.
+	Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for local variables.
 
 1.1  kalibrace krokáče, funkční ovládací sekvence
 1.2  add. minimalni kilometry na budíku  +úklid a přesnější kalibrace na fichtl stupnici
@@ -15,7 +15,8 @@ Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for l
 	ifdef pro tacho
 	úklid na OLEDu, lepčí font atak
 	přečíslování odstavců aby to sedělo s multigaugem
-	
+	Sketch uses 23512 bytes (72%) of program storage space. Maximum is 32384 bytes.
+	Global variables use 1267 bytes (61%) of dynamic memory, leaving 781 bytes for local variables.
 
 
 

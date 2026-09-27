@@ -4,5 +4,16 @@ V1.4
 - Watchdog spuštěn už na začátku setupu, nutno 
 vyzkoušet jeslti nebude timeoutovat při běžném provozu
 - I2C timeout nejde udělat. tak aspoň "odseknutí", I2C BUS CLEAR devíti pulzy
-
 - během loga 8x blikne LED, pro rozlišení od blikání heartbeatu
+
+v1.5
+ - oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
+jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
+
+nová const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
+ // Fyzikální strop na zrychlení/zpomalení (km/h za vteřinu).
+ // Nastaveno benevolentně, protože moped umí zrychlovat kurevsky.
+ // Chrání proti periodickému/korelovanému rušení, které dokáže
+ // "souhlasit samo se sebou" napříč více pulzy, ale nedokáže
+ // obelhat fyziku (čas mezi pulzy).
+

@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.5";
+const char FW_VERZE[] = "Stadi MultiGauge V1.4";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -60,9 +60,8 @@ const float OBVOD_KOLA_M = 1.77;
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL;
 
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
-const float MAX_SKOK_KMH = 25.0; // mezi pulzy
+const float MAX_SKOK_KMH = 25.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
-const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
 
 const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 
@@ -137,11 +136,6 @@ float kalman_p = 1;
 float posledniSurovaRychlostKmh = 0.0;
 bool mamePredchoziPulz = false;
 bool jsmeVPohybu = false;
-
-// Čas posledního zpracovaného pulzu (přijatého i zamítnutého) -
-// potřeba pro výpočet implikovaného zrychlení/zpomalení mezi
-// dvěma po sobě jdoucími pulzy.
-unsigned long casPoslednihoZpracovanehoPulzuUs = 0;
 
 // -- Kalman tacho --
 float tachoKalman_x = 0;
@@ -312,6 +306,7 @@ void snimacTachoPreruseni()
 
 float vyhladRychlost(float noveMereniKmh)
 {
+  kalman_x = kalman_x + 0; // ať je jasný, že filtr žije furt v RAM
   kalman_p = kalman_p + KALMAN_Q;
 
   float zisk = kalman_p / (kalman_p + KALMAN_R);
@@ -322,9 +317,7 @@ float vyhladRychlost(float noveMereniKmh)
   return kalman_x;
 }
 
-// "ted" je čas (z micros()) tohodle pulzu - potřeba pro
-// fyzikální kontrolu rychlosti změny.
-bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh, unsigned long ted)
+bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh)
 {
   bool vysledek = true;
 
@@ -344,21 +337,9 @@ bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh, unsigned long ted)
         fabs(surovaRychlostKmh - posledniSurovaRychlostKmh)
           < MAX_ROZDIL_SOUSEDNICH_PULZU_KMH;
 
-      // Fyzikální kontrola: i kdyby dva pulzy souhlasily,
-      // implikovaná rychlost změny nesmí přesáhnout to, co
-      // moped fyzicky dokáže. Periodické rušení dokáže
-      // "souhlasit samo se sebou", ale nedokáže obelhat čas.
-      float uplynuleSekundy =
-        (ted - casPoslednihoZpracovanehoPulzuUs) / 1000000.0;
-
-      bool jeZmenaFyzikalneMozna =
-        uplynuleSekundy > 0 &&
-        (rozdilOdVyhlazene / uplynuleSekundy) <= MAX_ZMENA_RYCHLOSTI_KMH_ZA_S;
-
-      if (souhlasiSPredchozim && jeZmenaFyzikalneMozna)
+      if (souhlasiSPredchozim)
       {
-        // Dva pulzy za sebou si sedí a je to fyzikálně možné
-        // -> reálné zrychlení.
+        // Dva pulzy za sebou si sedí -> reálné zrychlení.
         kalman_x = surovaRychlostKmh;
         kalman_p = 1.0;
       }
@@ -499,10 +480,17 @@ void zobrazUvodniLogo()
 
 void setup()
 {
-  wdt_enable(WDTO_8S);
+  // Některé bootloadery nechávaj watchdog po resetu běžet.
+  wdt_disable();
+
+  wdt_enable(WDTO_2S);  // na zkoušku wačdog přesunut hned na začátek
+
+
+
+
+
 
   // === I2C BUS CLEAR ===
-// něco jako zvon na hajzl pro I2C. aka defibrilátor.
 
 pinMode(SDA, INPUT_PULLUP);
 pinMode(SCL, INPUT_PULLUP);
@@ -544,6 +532,9 @@ pinMode(SDA, INPUT_PULLUP);
 pinMode(SCL, INPUT_PULLUP);
 
 
+  
+  
+
   u8g2.begin();
 
   // Speedo: D2 / INT0.
@@ -578,8 +569,8 @@ pinMode(SCL, INPUT_PULLUP);
 
   vykresliDashboard();
 
-  // Přezbrojení na přísný 2s watchdog PRO BĚŽNÝ PROVOZ
-  wdt_enable(WDTO_2S);
+//  wdt_enable(WDTO_2S);   PRESUNUTO na zacatek setupu
+
 }
 
 // ============================================================
@@ -605,25 +596,14 @@ void zpracujNovySpeedoPulzPokudExistuje()
   float surovaRychlostKmh =
     (OBVOD_KOLA_M * MS_PER_HODINU) / intervalUs;
 
-  unsigned long ted = micros();
-
-  bool duveryhodny = jePulzSpeedaDuveryhodny(surovaRychlostKmh, ted);
-
-  // Bez ohledu na výsledek si VŽDYCKY zapamatujeme surovou
-  // hodnotu a čas - i zamítnutý pulz je platný referenční bod
-  // pro porovnání s tím příštím. Bez tohohle by jediné zamítnutí
-  // při prudkém zrychlení zpřetrhalo řetězec navždy (dokud
-  // nezastavíš) - přesně tohle způsobovalo zaseknutí na
-  // konstantní špatné rychlosti po prudkém rozjezdu.
-  posledniSurovaRychlostKmh = surovaRychlostKmh;
-  mamePredchoziPulz = true;
-  casPoslednihoZpracovanehoPulzuUs = ted;
-
-  if (!duveryhodny)
+  if (!jePulzSpeedaDuveryhodny(surovaRychlostKmh))
   {
+    mamePredchoziPulz = false;
     return;
   }
 
+  mamePredchoziPulz = true;
+  posledniSurovaRychlostKmh = surovaRychlostKmh;
   jsmeVPohybu = true;
 
   float vyhlazenaKmh = vyhladRychlost(surovaRychlostKmh);
@@ -674,11 +654,10 @@ void zpracujNovyTachoPulzPokudExistuje()
   tachoIsrMameNovyPulz = false;
   interrupts();
 
-  // 1 pulz = 1 otáčka / PULZY_NA_OTACKU.
+  // 1 pulz = 1 otáčka.
   // 60 000 000 us za minutu / perioda / pulzy_na_otacku = RPM.
   float suroveRpm =
     (60000000.0 / intervalUs) / PULZY_NA_OTACKU;
-
   if (!jePulzTachaDuveryhodny(suroveRpm))
   {
     tachoMamePredchoziPulz = false;
@@ -848,9 +827,9 @@ void vykresliDashboard()
   u8g2.print(testRychlost);
 
   // ----------------------------------------------------------
-  // ODO, TRIP a text rpm (zobrazují se pouze při rychlosti <= 19 km/h)
+  // ODO, TRIP a text rpm (zobrazují se pouze při rychlosti <= 9 km/h)
   // ----------------------------------------------------------
-  if (testRychlost <= 19)
+  if (testRychlost <= 9)
   {
     u8g2.setFont(u8g2_font_6x10_tf);
 
