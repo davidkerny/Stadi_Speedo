@@ -4,12 +4,11 @@
 #include "U8g2lib.h"
 #include <EEPROM.h>
 #include <avr/wdt.h>
-#include <avr/interrupt.h>
 #include "stadionlogo.h"
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.3";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.2";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -32,16 +31,15 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.3";
 // 6)  PŘERUŠENÍ - TACHO
 // 7)  FILTR SPEEDA
 // 8)  FILTR TACHA
-// 8B) X27 168 - RUČIČKA SPEEDA
-// 8C) HEARTBEAT LED (diagnostika, D13)
-// 9)  ÚVODNÍ LOGO
-// 10) HLAVNÍ SMYČKA - SETUP
-// 11) ZPRACOVÁNÍ SPEEDA
-// 12) ZPRACOVÁNÍ TACHA
-// 13) KONTROLA ZASTAVENÍ SPEEDA
-// 14) KONTROLA ZASTAVENÍ TACHA
-// 15) LOOP
-// 16) DISPLEJ
+// 9)  X27 168 - RUČIČKA SPEEDA
+// 10) ÚVODNÍ LOGO
+// 11) HLAVNÍ SMYČKA - SETUP
+// 12) ZPRACOVÁNÍ SPEEDA
+// 13) ZPRACOVÁNÍ TACHA
+// 14) KONTROLA ZASTAVENÍ SPEEDA
+// 15) KONTROLA ZASTAVENÍ TACHA
+// 16) LOOP
+// 17) DISPLEJ
 
 // ============================================================
 // 1) NASTAVENÍ
@@ -79,13 +77,7 @@ const float KALMAN_R = 8.0;
 // --- Tacho snímač motor rpm (INT1) ---
 const byte TACHO_PIN = 3;
 
-// S PULZY_NA_OTACKU = 5 vychází perioda mezi (reálnými)
-// pulzy při 18 000 ot/min na ~667 us.
-const unsigned long MIN_MEZERA_TACHO_US = 560UL;
-
-// Tacho pulzy per otáčka
-const float PULZY_NA_OTACKU = 5.0;
-
+const unsigned long MIN_MEZERA_TACHO_US = 2800UL; // Pulzy kratší než 2.8 ms zahazujem jako bordel od zapalování.
 const float MAX_ROZUMNE_RPM = 18000.0;
 const float MIN_ROZUMNE_RPM = 500.0;
 const float MAX_SKOK_RPM = 5000.0;
@@ -188,9 +180,6 @@ volatile bool tachoIsrMameNovyPulz = false;
 long x27AktualniKrok = 0;   // kde ručička skutečně je (v krocích od nuly)
 long x27CilovyKrok = 0;     // kam se má dojet
 unsigned long x27PoslednKrokUs = 0;
-
-// -- Heartbeat LED (diagnostika, D13) --
-volatile uint8_t heartbeatPocitadloPreruseni = 0;
 
 // ============================================================
 // 3) MĚŘENÍ NAPÁJENÍ (Vcc)
@@ -435,11 +424,11 @@ bool jePulzTachaDuveryhodny(float suroveRpm)
 }
 
 // ============================================================
-// 8B) X27 168 - RUČIČKA SPEEDA
+// 9) X27 168 - RUČIČKA SPEEDA
 // ============================================================
 
 
-// Postupným průchodem stavy 0->1->2->3 se motorek
+// Postupným průchodem stavy 0->1->2->4 se motorek
 // otáčí jedním směrem, opačným průchodem druhým směrem.
 const uint8_t X27_SEKVENCE[4][4] = {
   { 1, 0, 0, 0 },
@@ -480,7 +469,7 @@ void HomingRucicky()
   }
 
   //chvíli počkáme, ať to neni tak uspěchaný
-  delay(100);
+delay(100);
 
   // A zpátky na nulu.
   for (long i = 0; i < X27_KROKU_CELKEM; i++)
@@ -553,40 +542,7 @@ void aktualizujRucicku()
 }
 
 // ============================================================
-// 8C) HEARTBEAT LED (diagnostika, D13)
-// ============================================================
-
-// Timer2 v CTC módu, prescaler 1024 -> jeden "tik" cca 16 ms.
-// V ISR čekáme 16 tiků (~256 ms), než LED přepneme - vznikne
-// viditelné, pomalé blikání (~2 Hz). Běží nezávisle na loop().
-//
-// Nekoliduje s X27 ani se speedo/tacho piny (D13 je jinak
-// volný) a nekoliduje ani s Timerem0 (millis/delay) ani
-// s hardwarovým I2C.
-
-void nastavHeartbeatTimer()
-{
-  pinMode(13, OUTPUT);
-
-  TCCR2A = (1 << WGM21);                              // CTC mód
-  TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);   // prescaler 1024
-  OCR2A = 249;                                         // perioda ~16 ms
-  TIMSK2 = (1 << OCIE2A);                              // povolit přerušení
-}
-
-ISR(TIMER2_COMPA_vect)
-{
-  heartbeatPocitadloPreruseni++;
-
-  if (heartbeatPocitadloPreruseni >= 16)   // ~16 x 16 ms ≈ 256 ms
-  {
-    heartbeatPocitadloPreruseni = 0;
-    digitalWrite(13, !digitalRead(13));
-  }
-}
-
-// ============================================================
-// 9) ÚVODNÍ LOGO
+// 10) ÚVODNÍ LOGO
 // ============================================================
 
 void zobrazUvodniLogo()
@@ -602,7 +558,7 @@ void zobrazUvodniLogo()
   u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
 
   u8g2.setFont(u8g2_font_5x7_tf);
-  u8g2.setCursor(0, 31);
+  u8g2.setCursor(0, 27);
   u8g2.print(FW_VERZE);
 
   u8g2.sendBuffer();
@@ -622,59 +578,13 @@ void zobrazUvodniLogo()
 }
 
 // ============================================================
-// 10) HLAVNÍ SMYČKA - SETUP
+// 11) HLAVNÍ SMYČKA - SETUP
 // ============================================================
 
 void setup()
 {
   // Některé bootloadery nechávaj watchdog po resetu běžet.
   wdt_disable();
-
-  // Benevolentní watchdog už od úplného začátku setup() -
-  // 8 s je hardwarový strop AVR 
-  wdt_enable(WDTO_8S);
-
-  // === I2C BUS CLEAR ===
-  // Pokud vyhnilo I2C, preventivně vyčistíme sběrnici ručním bit-bang defibrilátorem.
-
-  pinMode(SDA, INPUT_PULLUP);
-  pinMode(SCL, INPUT_PULLUP);
-  delayMicroseconds(10);
-
-  bool byloZaseknute = (digitalRead(SDA) == LOW);
-
-  if (byloZaseknute) {
-
-    // 9 hodinových pulzů
-    for (int i = 0; i < 9; i++) {
-      if (digitalRead(SDA) == HIGH) break; // Displej už pustil SDA
-      pinMode(SCL, OUTPUT);
-      digitalWrite(SCL, LOW);
-      delayMicroseconds(5);
-
-      pinMode(SCL, INPUT_PULLUP);
-      delayMicroseconds(5);
-    }
-
-    // STOP podmínka - VŽDY, když jsme dělali clearing
-    pinMode(SCL, OUTPUT);
-    digitalWrite(SCL, LOW);       // SCL = LOW
-    delayMicroseconds(5);
-
-    pinMode(SDA, OUTPUT);
-    digitalWrite(SDA, LOW);       // SDA = LOW
-    delayMicroseconds(5);
-
-    pinMode(SCL, INPUT_PULLUP);   // SCL jde HIGH
-    delayMicroseconds(5);
-
-    pinMode(SDA, INPUT_PULLUP);   // SDA LOW->HIGH při SCL=HIGH = STOP
-    delayMicroseconds(5);
-  }
-
-  // Obnovení běžného I2C režimu
-  pinMode(SDA, INPUT_PULLUP);
-  pinMode(SCL, INPUT_PULLUP);
 
   u8g2.begin();
 
@@ -693,8 +603,6 @@ void setup()
   pinMode(X27_D, OUTPUT);
 
   zobrazUvodniLogo();
-
-  nastavHeartbeatTimer();
 
   HomingRucicky();
 
@@ -717,16 +625,15 @@ void setup()
     snimacTachoPreruseni,
     FALLING
   );
-#endif
+ #endif
 
   vykresliDashboard();
 
-  // Přezbrojení na přísný 2s watchdog PRO BĚŽNÝ PROVOZ
   wdt_enable(WDTO_2S);
 }
 
 // ============================================================
-// 11) ZPRACOVÁNÍ SPEEDA
+// 12) ZPRACOVÁNÍ SPEEDA
 // ============================================================
 
 void zpracujNovySpeedoPulzPokudExistuje()
@@ -789,7 +696,7 @@ void zpracujNovySpeedoPulzPokudExistuje()
 }
 
 // ============================================================
-// 12) ZPRACOVÁNÍ TACHA
+// 13) ZPRACOVÁNÍ TACHA
 // ============================================================
 
 void zpracujNovyTachoPulzPokudExistuje()
@@ -806,10 +713,10 @@ void zpracujNovyTachoPulzPokudExistuje()
   tachoIsrMameNovyPulz = false;
   interrupts();
 
-  // 1 pulz = 1 otáčka / PULZY_NA_OTACKU.
-  // 60 000 000 us za minutu / perioda / pulzy_na_otacku = RPM.
+  // 1 pulz = 1 otáčka.
+  // 60 000 000 us za minutu / perioda = RPM.
   float suroveRpm =
-    (60000000.0 / intervalUs) / PULZY_NA_OTACKU;
+    60000000.0 / intervalUs;
 
   if (!jePulzTachaDuveryhodny(suroveRpm))
   {
@@ -828,7 +735,7 @@ void zpracujNovyTachoPulzPokudExistuje()
 }
 
 // ============================================================
-// 13) KONTROLA ZASTAVENÍ SPEEDA
+// 14) KONTROLA ZASTAVENÍ SPEEDA
 // ============================================================
 
 void zkontrolujJestliStojimeSpeedo()
@@ -857,7 +764,7 @@ void zkontrolujJestliStojimeSpeedo()
 }
 
 // ============================================================
-// 14) KONTROLA ZASTAVENÍ TACHA
+// 15) KONTROLA ZASTAVENÍ TACHA
 // ============================================================
 
 void zkontrolujJestliStojimeTacho()
@@ -888,7 +795,7 @@ void zkontrolujJestliStojimeTacho()
 }
 
 // ============================================================
-// 15) LOOP
+// 16) LOOP
 // ============================================================
 
 void loop()
@@ -917,7 +824,7 @@ void loop()
 }
 
 // ============================================================
-// 16) DISPLEJ
+// 17) DISPLEJ
 // ============================================================
 
 void vykresliDashboard()

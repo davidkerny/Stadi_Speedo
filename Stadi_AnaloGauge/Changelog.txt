@@ -8,17 +8,22 @@ Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for l
 1.1  kalibrace krokáče, funkční ovládací sekvence
 1.2  add. minimalni kilometry na budíku  +úklid a přesnější kalibrace na fichtl stupnici
 		max. 103, min 4km
+1.3   Harmonizace s poslední verzí multigauge V1.4
+	Watchdog od začátku setupu,
+	I2C BusClear defibrilátor na začátku
+	Heartbeat LED z 
+	ifdef pro tacho
+	úklid na OLEDu, lepčí font atak
+	přečíslování odstavců aby to sedělo s multigaugem
+	
+
 
 
 
 X27_KROKU_CELKEM = 160 se zda default. (*4)
 X27_MIN_KROK_US = rychlost krokovani, zda se ze 2000 je bezpecna hodnota. funguje cca od 1200
 
-
-Tacho/RPM zpracování jsem nechal plně funkční na pozadí (ISR, filtr, zobrazeneRpm) — 
-jen se teď nikde nezobrazuje. Je to připravené pro případnou druhou ručičku (tacho), 
-stačí aby přibyla analogická sekce X27 s vlastními piny.
-
+Tacho/RPM zpracování je stále teoreticky plně funkční na pozadí (ISR, filtr, zobrazeneRpm)
 
 
 _________________
@@ -27,11 +32,3 @@ Stepper_Tester hejbe ručičkou budíku sem-tam na ozkoušení, že je krokouš 
 
 Stupnice_Tester jezdí ručičkou po nastavených hodnotách pro ověření validity ručička vs. stupnice
 
-
-
-
-
-oproti multigauge nemá: 
-- koeficient počet nasnímaných pulzů vs. rpm
-- heartbeat LED
-- I2C 9-pulzový defibrilátor
