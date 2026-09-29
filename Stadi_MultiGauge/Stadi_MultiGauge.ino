@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.5";
+const char FW_VERZE[] = "Stadi MultiGauge V1.52";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -39,76 +39,54 @@ const char FW_VERZE[] = "Stadi MultiGauge V1.5";
 // 1) NASTAVENÍ
 // ============================================================
 
-
-//Init OLED klasika 0.96"
-//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-//Init OLED Laskakit 1.3"
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-//Init OLED placatej zmrd 0.91"
-//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+// --- OLED init ---
+//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
+//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 
-// --- Speedo snímač kola (INT0) ---
+// --- SPEEDO snímač kola (INT0) ---
 const byte SENSOR_PIN = 2;
 
 // Obvod kola v metrech. = vzdálenost per pulz
-const float OBVOD_KOLA_M = 1.77;
+const float OBVOD_KOLA_M = 1.74; //16" kolo, guma terénní 16x2.75 simson
+//const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 stadion
 
-// --- Ochrana speeda proti rušení ---
-
-// Moped jede do 120 km/h. Rychlejší pulz ignorujem.
-const unsigned long MIN_MEZERA_PULZU_US = 45000UL;
-
+// --- SPEEDO tuning ---
+const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
 const float MAX_SKOK_KMH = 25.0; // mezi pulzy
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
 const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
-
 const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
+const float KALMAN_Q = 0.5;
+const float KALMAN_R = 8.0;
 
-// --- Tacho snímač motor rpm (INT1) ---
-const byte TACHO_PIN = 3;
+// --- TACHO snímač motor rpm (INT1) ---
+const byte TACHO_PIN = 3; ducati energia simson
 
-// S PULZY_NA_OTACKU = 5 vychází perioda mezi (reálnými)
-// pulzy při 18 000 ot/min na ~667 us. Práh je stejný poměr
-// (0,84x) jako měl původní kód při 1 pulzu/otáčku - filtruje
-// jen to, co je rychlejší, než by kdy mohlo být legitimní.
+// --- TACHO tuning ---
 // const unsigned long MIN_MEZERA_TACHO_US = 2800UL; v případě 1pulz=1ot.
-const unsigned long MIN_MEZERA_TACHO_US = 560UL;
-
-// Tacho pulzy per otáčka
-const float PULZY_NA_OTACKU = 5.0;
-
-const float MAX_ROZUMNE_RPM = 18000.0;
+const unsigned long MIN_MEZERA_TACHO_US = 1333UL; (15Krpm 3pulz/ot)
+const float PULZY_NA_OTACKU = 3.0;  // Tacho pulzy per otáčka DUCATI ENERGIA
+const float MAX_ROZUMNE_RPM = 15000.0;
 const float MIN_ROZUMNE_RPM = 500.0;
-const float MAX_SKOK_RPM = 5000.0;
-const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 1500.0;
-
-// Když 200 ms nic nepřijde, motor chcípl.
-const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL;
+const float MAX_SKOK_RPM = 7000.0; // bylo 5000, zkousim benevolentnejsi mereni
+const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 2500.0; // bylo 1500, zkousim benevolentnejsi mereni
+const unsigned long CAS_DO_ZASTAVENI_TACHO_MS = 200UL; // Když 200 ms nic nepřijde, motor chcípl.
+const float TACHO_KALMAN_Q = 2.0; // Vyšší Q = rychlejší reakce na vrknutí plynem.
+const float TACHO_KALMAN_R = 8.0;
 
 // --- Welcome logo ---
 const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1900UL;
 const byte LOGO_POCET_BLIKNUTI = 8;
 
-// --- Kalman speedo ---
-const float KALMAN_Q = 0.5;
-const float KALMAN_R = 8.0;
-
-// --- Kalman tacho ---
-// Vyšší Q = rychlejší reakce na vrknutí plynem.
-const float TACHO_KALMAN_Q = 2.0;
-const float TACHO_KALMAN_R = 8.0;
-
 // --- EEPROM / ODO ---
 const int ODO_ADR_START = 0;
 const int ODO_ADR_KONEC = 252;
 const unsigned long KROK_ULOZENI_M = 100UL;
-
 const unsigned long ODO_FYZICKY_STROP_M = 100000000UL;
 const unsigned long ODO_MAX_SKOK_MEZI_BUNKAMI_M = 1000000UL;
-
-// --- Ochrana EEPROM při nízkým napětí ---
 #define KONTROLA_NAPETI_ZAPNUTA 1
 const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 

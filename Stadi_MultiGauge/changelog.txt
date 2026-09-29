@@ -17,3 +17,8 @@ nová const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
  // "souhlasit samo se sebou" napříč více pulzy, ale nedokáže
  // obelhat fyziku (čas mezi pulzy).
 
+Sketch uses 24890 bytes (76%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1751 bytes (85%) of dynamic memory. Odhadovaná potřeba ~150 B
+
+v1.52 
+ - tuning fyzických rozměrů kola, drobný úklid
