@@ -9,7 +9,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.3";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.4";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -47,12 +47,10 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.3";
 // 1) NASTAVENÍ
 // ============================================================
 
-//Init OLED klasika 0.96"
-//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-//Init OLED Laskakit 1.3"
-//U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-//Init OLED placatej zmrd 0.91"
-U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+// --- OLED init ---
+//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
+//U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
+U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
 #define TEST_MULTIPLIER 1
@@ -60,14 +58,15 @@ U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 // --- Zapnout / Vypnout TACHO funkci ---
 //#define TACHO
 
-// --- Speedo snímač kola (INT0) ---
+// --- SPEEDO snímač kola (INT0) ---
 const byte SENSOR_PIN = 2;
 
 // Obvod kola v metrech. = vzdálenost per pulz
-const float OBVOD_KOLA_M = 1.77;
+//const float OBVOD_KOLA_M = 1.74; //16" kolo, guma terénní 16x2.75 simson
+const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 stadion
 
-// --- Ochrana speeda proti rušení ---
-const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // Moped jede do 120 km/h. Rychlejší pulz ignorujem.
+// --- SPEEDO tuning ---
+const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
 const float MAX_SKOK_KMH = 25.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
@@ -75,18 +74,13 @@ const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 const float KALMAN_Q = 0.5;
 const float KALMAN_R = 8.0;
 
-
-// --- Tacho snímač motor rpm (INT1) ---
+// --- TACHO snímač motor rpm (INT1) ---
 const byte TACHO_PIN = 3;
 
-// S PULZY_NA_OTACKU = 5 vychází perioda mezi (reálnými)
-// pulzy při 18 000 ot/min na ~667 us.
-const unsigned long MIN_MEZERA_TACHO_US = 560UL;
-
-// Tacho pulzy per otáčka
-const float PULZY_NA_OTACKU = 5.0;
-
-const float MAX_ROZUMNE_RPM = 18000.0;
+// --- TACHO tuning ---
+const unsigned long MIN_MEZERA_TACHO_US = 1333UL;
+const float PULZY_NA_OTACKU = 3.0;  // Tacho pulzy per otáčka DUCATI ENERGIA
+const float MAX_ROZUMNE_RPM = 15000.0;
 const float MIN_ROZUMNE_RPM = 500.0;
 const float MAX_SKOK_RPM = 5000.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_RPM = 1500.0;
@@ -97,7 +91,7 @@ const float TACHO_KALMAN_R = 8.0;
 
 // --- Welcome logo ---
 const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 2000UL;
-const byte LOGO_POCET_BLIKNUTI = 4;
+const byte LOGO_POCET_BLIKNUTI = 8;
 
 // --- EEPROM / ODO ---
 const int ODO_ADR_START = 0;
@@ -105,8 +99,6 @@ const int ODO_ADR_KONEC = 252;
 const unsigned long KROK_ULOZENI_M = 100UL;
 const unsigned long ODO_FYZICKY_STROP_M = 100000000UL;
 const unsigned long ODO_MAX_SKOK_MEZI_BUNKAMI_M = 1000000UL;
-
-// --- Ochrana EEPROM při nízkým napětí ---
 #define KONTROLA_NAPETI_ZAPNUTA 1
 const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 
@@ -156,7 +148,6 @@ float kalman_p = 1;
 // -- Pomoc speeda s rušením --
 float posledniSurovaRychlostKmh = 0.0;
 bool mamePredchoziPulz = false;
-bool jsmeVPohybu = false;
 
 // -- Kalman tacho --
 float tachoKalman_x = 0;
@@ -364,7 +355,8 @@ bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh)
 
       if (souhlasiSPredchozim)
       {
-        // Dva pulzy za sebou si sedí -> reálné zrychlení.
+        // Dva pulzy za sebou si sedí -> reálné zrychlení. 
+        // NEBO rychlá resynchronizace po resetu za jízdy
         kalman_x = surovaRychlostKmh;
         kalman_p = 1.0;
       }
@@ -748,14 +740,21 @@ void zpracujNovySpeedoPulzPokudExistuje()
   float surovaRychlostKmh =
     (OBVOD_KOLA_M * MS_PER_HODINU) / intervalUs;
 
-  if (!jePulzSpeedaDuveryhodny(surovaRychlostKmh))
+  bool duveryhodny = jePulzSpeedaDuveryhodny(surovaRychlostKmh);
+
+  // Bez ohledu na výsledek si VŽDYCKY zapamatujeme surovou
+  // hodnotu... i zamítnutý pulz je platný referenční bod
+  // pro porovnání s tím příštím. Bez tohohle by jediné zamítnutí
+  // při prudkém zrychlení nebo při resetu za jízdy mohlo přetrhnout řetězec
+  // a ukazovalo by to furt stejnou rychlost až do zastavení.
+  posledniSurovaRychlostKmh = surovaRychlostKmh;
+  mamePredchoziPulz = true;
+
+  if (!duveryhodny)
   {
-    mamePredchoziPulz = false;
     return;
   }
 
-  mamePredchoziPulz = true;
-  posledniSurovaRychlostKmh = surovaRychlostKmh;
   jsmeVPohybu = true;
 
   float vyhlazenaKmh = vyhladRychlost(surovaRychlostKmh);
@@ -938,7 +937,8 @@ void vykresliDashboard()
   //u8g2.setFont(u8g2_font_VCR_OSD_tu);
   //u8g2.setFont(u8g2_font_courB14_tf);  //patkove
   //u8g2.setFont(u8g2_font_logisoso16_tn); //hezke ale moc vysoke
-  u8g2.setFont(u8g2_font_crox4hb_tn);  //docela tučné, výška 21, álá helvetica
+  //u8g2.setFont(u8g2_font_crox4hb_tn);  //docela tučné, výška 21, álá helvetica
+  u8g2.setFont(u8g2_font_crox4h_tn);  //výška 21, álá helvetica
 
   
   // -- Řádek 1: ODO --
