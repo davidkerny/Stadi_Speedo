@@ -9,7 +9,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.4";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.5";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
