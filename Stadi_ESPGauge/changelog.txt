@@ -1,0 +1,21 @@
+Co si musíte upravit
+Piny SENSOR_PIN a TACHO_PIN — nastavte podle skutečného zapojení na vaší desce
+
+Fonty — lv_font_montserrat_48, lv_font_montserrat_16 atd. musíte povolit v lv_conf.h 
+(LV_FONT_MONTSERRAT_48 1)
+
+RGB panel konfigurace — pinové definice vycházejí z Waveshare desky , ale musíte je 
+ověřit podle skutečného schématu vaší desky
+
+Omezení tohoto kódu
+Zjednodušená inicializace RGB panelu — st7701_type5_init_operations nemusí odpovídat 
+vaší konkrétní desce. Doporučuji vzít konfiguraci z oficiálního Waveshare dema pro 
+ESP32-S3-Touch-LCD-2.1 
+
+EEPROM — na ESP32-S3 preferujte Preferences místo EEPROM
+
+Kalman filtr — logika je zkopírována z ATmega verze, ale na ESP32-S3 s 240 MHz 
+můžete použít jednodušší filtr
+
+Toto je funkční základ, ale pro produkční nasazení budete potřebovat doladit 
+inicializaci RGB panelu podle konkrétní revize vaší desky.
