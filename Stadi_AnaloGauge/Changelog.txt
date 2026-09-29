@@ -17,15 +17,19 @@ Stadi AnaloGauge X27
 	přečíslování odstavců aby to sedělo s multigaugem
 	Sketch uses 23512 bytes (72%) of program storage space. Maximum is 32384 bytes.
 	Global variables use 1267 bytes (61%) of dynamic memory, leaving 781 bytes for local variables.
+1.4	oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
+	jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
+	oživí čtení rychlosti taky v případě resetu budíku za jízdy. PODLE MultiGauge 1.5
 
 
 
+
+_______________
 
 X27_KROKU_CELKEM = 160 se zda default. (*4)
 X27_MIN_KROK_US = rychlost krokovani, zda se ze 2000 je bezpecna hodnota. funguje cca od 1200
 
 Tacho/RPM zpracování je stále teoreticky plně funkční na pozadí (ISR, filtr, zobrazeneRpm)
-
 
 _________________
 
