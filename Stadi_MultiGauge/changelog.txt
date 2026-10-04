@@ -1,3 +1,5 @@
+*MULTIGAUGE CHANGELOG*
+
 V1.3 Initial
 
 V1.4 
@@ -22,3 +24,11 @@ Global variables use 1751 bytes (85%) of dynamic memory. Odhadovaná potřeba ~1
 
 v1.52 
  - tuning fyzických rozměrů kola, drobný úklid
+
+v1.53
+ - MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
+
+
+
+___________________
+TODO: 1bit externí paměť (kondenzátor?) pro zachování TRIP metru při resetu budíku. TRIP se smaže až při delší odstávce
