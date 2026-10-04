@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.52";
+const char FW_VERZE[] = "Stadi MultiGauge V1.53";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -55,9 +55,9 @@ const float OBVOD_KOLA_M = 1.74; //16" kolo, guma terénní 16x2.75 simson
 // --- SPEEDO tuning ---
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
-const float MAX_SKOK_KMH = 25.0; // mezi pulzy
+const float MAX_SKOK_KMH = 120.0; // mezi pulzy - vypnuto
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
-const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
+const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0;  // vypnuto
 const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 const float KALMAN_Q = 0.5;
 const float KALMAN_R = 8.0;

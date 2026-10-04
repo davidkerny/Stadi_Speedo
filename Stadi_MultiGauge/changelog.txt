@@ -27,7 +27,7 @@ v1.52
 
 v1.53
  - MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
-
+ - MAX_SKOK_KMH = 120.0;  vypnuto taky
 
 
 ___________________
