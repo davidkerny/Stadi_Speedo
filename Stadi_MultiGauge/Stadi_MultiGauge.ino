@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.53";
+const char FW_VERZE[] = "Stadi MultiGauge V1.6";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -63,11 +63,11 @@ const float KALMAN_Q = 0.5;
 const float KALMAN_R = 8.0;
 
 // --- TACHO snímač motor rpm (INT1) ---
-const byte TACHO_PIN = 3; ducati energia simson
+const byte TACHO_PIN = 3; // ducati energia simson
 
 // --- TACHO tuning ---
 // const unsigned long MIN_MEZERA_TACHO_US = 2800UL; v případě 1pulz=1ot.
-const unsigned long MIN_MEZERA_TACHO_US = 1333UL; (15Krpm 3pulz/ot)
+const unsigned long MIN_MEZERA_TACHO_US = 1333UL; // (15Krpm 3pulz/ot)
 const float PULZY_NA_OTACKU = 3.0;  // Tacho pulzy per otáčka DUCATI ENERGIA
 const float MAX_ROZUMNE_RPM = 15000.0;
 const float MIN_ROZUMNE_RPM = 500.0;
@@ -78,7 +78,7 @@ const float TACHO_KALMAN_Q = 2.0; // Vyšší Q = rychlejší reakce na vrknutí
 const float TACHO_KALMAN_R = 8.0;
 
 // --- Welcome logo ---
-const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1900UL;
+const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1000UL;
 const byte LOGO_POCET_BLIKNUTI = 8;
 
 // --- EEPROM / ODO ---
@@ -99,7 +99,11 @@ const unsigned long DISPLEJ_INTERVAL_MS = 100;
 
 // -- Ujetá vzdálenost --
 unsigned long odoMetry = 0;
-unsigned long tripMetry = 0;
+
+// TRIP + magic number leží v .noinit -> startup kód je při resetu
+// nenuluje. Při studeném startu v nich je náhodný obsah.
+unsigned long tripMetry __attribute__((section(".noinit")));
+unsigned long tripMagic __attribute__((section(".noinit")));
 
 // -- Aktuální rychlost --
 unsigned int zobrazenaRychlostKmh = 0;
@@ -176,7 +180,7 @@ long nactiNapetiVcc()
 #endif
 
 // ============================================================
-// 4) EEPROM - ukládání ODO
+// 4) EEPROM - ukládání ODO, TRIP
 // ============================================================
 
 void nactiOdoZEEPROM()
@@ -229,6 +233,11 @@ bool ulozOdoDoEEPROM(unsigned long hodnotaMetru)
   EEPROM.put(odoAdresaAktualni, hodnotaMetru);
   return true;
 }
+
+// --- TRIP přežívá reset (kontrola obsahu RAM) ---
+const unsigned long TRIP_MAGIC = 0xA5C3F00DUL;  // platná RAM = pokračuj, jinak nuluj
+
+
 
 // ============================================================
 // 5) PŘERUŠENÍ - SPEEDO
@@ -536,23 +545,18 @@ pinMode(SCL, INPUT_PULLUP);
   nastavHeartbeatTimer();
 
   nactiOdoZEEPROM();
-  tripMetry = 0;
+
+  // Magic number sedí = reset za jízdy, TRIP zůstává. Jinak studený start.
+  if (tripMagic != TRIP_MAGIC)
+  {tripMetry = 0;tripMagic = TRIP_MAGIC;}
 
   odoNaposledyUlozeno = odoMetry;
 
   // Přerušení pro kolo.
-  attachInterrupt(
-    digitalPinToInterrupt(SENSOR_PIN),
-    snimacSpeedoPreruseni,
-    FALLING
-  );
+  attachInterrupt(digitalPinToInterrupt(SENSOR_PIN),snimacSpeedoPreruseni, FALLING);
 
   // Přerušení pro otáčky motoru.
-  attachInterrupt(
-    digitalPinToInterrupt(TACHO_PIN),
-    snimacTachoPreruseni,
-    FALLING
-  );
+  attachInterrupt(digitalPinToInterrupt(TACHO_PIN),snimacTachoPreruseni, FALLING);
 
   vykresliDashboard();
 
@@ -567,9 +571,7 @@ pinMode(SCL, INPUT_PULLUP);
 void zpracujNovySpeedoPulzPokudExistuje()
 {
   if (!speedoIsrMameNovyPulz)
-  {
-    return;
-  }
+  {return;}
 
   unsigned long intervalUs;
 
@@ -598,9 +600,7 @@ void zpracujNovySpeedoPulzPokudExistuje()
   casPoslednihoZpracovanehoPulzuUs = ted;
 
   if (!duveryhodny)
-  {
-    return;
-  }
+  {return; }
 
   jsmeVPohybu = true;
 
@@ -626,12 +626,8 @@ void zpracujNovySpeedoPulzPokudExistuje()
 
   // EEPROM zápis po 100 m.
   if (odoMetry - odoNaposledyUlozeno >= KROK_ULOZENI_M)
-  {
-    if (ulozOdoDoEEPROM(odoMetry))
-    {
-      odoNaposledyUlozeno = odoMetry;
-    }
-  }
+  { if (ulozOdoDoEEPROM(odoMetry))
+    { odoNaposledyUlozeno = odoMetry; }}
 }
 
 // ============================================================
@@ -639,11 +635,7 @@ void zpracujNovySpeedoPulzPokudExistuje()
 // ============================================================
 
 void zpracujNovyTachoPulzPokudExistuje()
-{
-  if (!tachoIsrMameNovyPulz)
-  {
-    return;
-  }
+{if (!tachoIsrMameNovyPulz) { return;}
 
   unsigned long intervalUs;
 
@@ -658,10 +650,7 @@ void zpracujNovyTachoPulzPokudExistuje()
     (60000000.0 / intervalUs) / PULZY_NA_OTACKU;
 
   if (!jePulzTachaDuveryhodny(suroveRpm))
-  {
-    tachoMamePredchoziPulz = false;
-    return;
-  }
+  {tachoMamePredchoziPulz = false; return;}
 
   tachoMamePredchoziPulz = true;
   posledniSuroveRpm = suroveRpm;
@@ -775,7 +764,7 @@ void vykresliDashboard()
 
   // ----------------------------------------------------------
   // RPM vpravo nahoře (ve stovkách RPM).
-  // Např. 8000 RPM = 80, 11200 RPM = 112
+  // Např. 8000 RPM = 80
   // ----------------------------------------------------------
   u8g2.setFont(u8g2_font_logisoso24_tn);
 
@@ -785,25 +774,18 @@ void vykresliDashboard()
   // Formátování textu na 2 až 3 cifry (včetně vodicí nuly pro <10)
   char rpmText[8];
   if (rpmStovky < 10)
-  {
-    snprintf(rpmText, sizeof(rpmText), "0%d", rpmStovky);
-  }
+  {snprintf(rpmText, sizeof(rpmText), "0%d", rpmStovky); }
   else
-  {
-    snprintf(rpmText, sizeof(rpmText), "%d", rpmStovky);
-  }
+  { snprintf(rpmText, sizeof(rpmText), "%d", rpmStovky);}
 
   // --- POLOHOVÁNÍ RPM (upravuj podle potřeby X, Y) ---
-  if (rpmStovky < 100)
-  {
+  if (rpmStovky < 100){
     // Pro dvoumístné číslo (např. "00", "10", "80")
-    u8g2.setCursor(99, 31); 
-  }
-  else
-  {
+    u8g2.setCursor(99, 31); }
+    
+  else{
     // Pro třímístné číslo (např. "112", "150")
-    u8g2.setCursor(85, 31); 
-  }
+    u8g2.setCursor(85, 31); }
   u8g2.print(rpmText);
 
   // ----------------------------------------------------------
@@ -812,25 +794,18 @@ void vykresliDashboard()
   u8g2.setFont(u8g2_font_logisoso58_tn);
 
   if (testRychlost < 10)
-  {
-    u8g2.setCursor(37, 58);
-  }
+  { u8g2.setCursor(37, 58); }
   else if (testRychlost < 100)
-  {
-    u8g2.setCursor(6, 58);
-  }
+  { u8g2.setCursor(6, 58);}
   else
-  {
-    u8g2.setCursor(-20, 58);
-  }
+  { u8g2.setCursor(-20, 58); }
   u8g2.print(testRychlost);
 
   // ----------------------------------------------------------
   // ODO, TRIP a text rpm (zobrazují se pouze při rychlosti <= 19 km/h)
   // ----------------------------------------------------------
   if (testRychlost <= 19)
-  {
-    u8g2.setFont(u8g2_font_6x10_tf);
+  { u8g2.setFont(u8g2_font_6x10_tf);
 
      // Popisek x100.
      //u8g2.setCursor(95, 51);
@@ -853,9 +828,7 @@ void vykresliDashboard()
     char *zacatekCisla = cisloTripu;
 
     while (*zacatekCisla == ' ')
-    {
-      zacatekCisla++;
-    }
+    { zacatekCisla++;}
 
     char tripText[12];
 
@@ -867,12 +840,7 @@ void vykresliDashboard()
     );
 
     int sirkaTextu = u8g2.getStrWidth(tripText);
-
-    u8g2.setCursor(
-      128 - sirkaTextu,
-      64
-    );
-
+    u8g2.setCursor( 128 - sirkaTextu, 64 );
     u8g2.print(tripText);
   }
 

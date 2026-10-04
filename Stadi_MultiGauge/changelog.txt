@@ -29,6 +29,8 @@ v1.53
  - MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
  - MAX_SKOK_KMH = 120.0;  vypnuto taky
 
+v1.6
+  Zachování obsahu RAM po resetu za jízdy. (TRIP metr) kontrola validity RAM skrze magic number. Po delší odstávce jede TRIP od nuly
 
-___________________
-TODO: 1bit externí paměť (kondenzátor?) pro zachování TRIP metru při resetu budíku. TRIP se smaže až při delší odstávce
+
+
