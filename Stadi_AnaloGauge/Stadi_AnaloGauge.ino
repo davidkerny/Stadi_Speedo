@@ -9,7 +9,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.5";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.51";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -68,7 +68,7 @@ const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 stadion
 // --- SPEEDO tuning ---
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
 const float MAX_ROZUMNA_RYCHLOST_KMH = 120.0;
-const float MAX_SKOK_KMH = 25.0;
+const float MAX_SKOK_KMH = 120.0;
 const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
 const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 const float KALMAN_Q = 0.5;
@@ -148,6 +148,7 @@ float kalman_p = 1;
 // -- Pomoc speeda s rušením --
 float posledniSurovaRychlostKmh = 0.0;
 bool mamePredchoziPulz = false;
+bool jsmeVPohybu = false;
 
 // -- Kalman tacho --
 float tachoKalman_x = 0;

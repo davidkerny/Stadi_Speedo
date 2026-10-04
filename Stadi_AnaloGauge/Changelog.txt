@@ -11,7 +11,7 @@ Stadi AnaloGauge X27
 1.3   Harmonizace s poslední verzí multigauge V1.4
 	Watchdog od začátku setupu,
 	I2C BusClear defibrilátor na začátku
-	Heartbeat LED z 
+	Heartbeat LED z multigauge
 	ifdef pro tacho
 	úklid na OLEDu, lepčí font atak
 	přečíslování odstavců aby to sedělo s multigaugem
@@ -20,7 +20,7 @@ Stadi AnaloGauge X27
 1.5	oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
 	jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
 	oživí čtení rychlosti taky v případě resetu budíku za jízdy. PODLE MultiGauge 1.5
-
+1.51	bugfix jsmevpohybu, MAX_SKOK_KMH = 120.0: test jestli to naváže i po resetu za jízdy
 
 
 
