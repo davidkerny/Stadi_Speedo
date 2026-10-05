@@ -39,8 +39,8 @@ v1.61
 v1.62
 	reorganizace LCD; trip se zobrazuje stále, když nečteme RPM, vpravo nápis km/h a TOPSPEED
 
+v1.63
+	při resetu se nezobrazuje welcome logo, ale rovnou navážeme. welcome logo jen při studeném startu.
 
-
-Sketch uses 22218 bytes (68%) of program storage space. Maximum is 32384 bytes.
-Global variables use 1647 bytes (80%) of dynamic memory, leaving 401 bytes for local variables.
-
+Sketch uses 25356 bytes (78%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1763 bytes (86%) of dynamic memory, leaving 285 bytes for local variables.

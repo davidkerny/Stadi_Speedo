@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.62";
+const char FW_VERZE[] = "Stadi MultiGauge V1.63";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -462,43 +462,35 @@ void setup()
 {
   wdt_enable(WDTO_8S);
 
-  // === I2C BUS CLEAR ===
-// něco jako zvon na hajzl pro I2C. aka defibrilátor.
+// === I2C BUS CLEAR ===
+// zvon na hajzl pro I2C. aka defibrilátor.
 
 pinMode(SDA, INPUT_PULLUP);
 pinMode(SCL, INPUT_PULLUP);
 delayMicroseconds(10);
 
 bool byloZaseknute = (digitalRead(SDA) == LOW);
-
 if (byloZaseknute) {
-
   // 9 hodinových pulzů
   for (int i = 0; i < 9; i++) {
     if (digitalRead(SDA) == HIGH) break; // Displej už pustil SDA, můžeme se na to vyjebat
     pinMode(SCL, OUTPUT);
     digitalWrite(SCL, LOW);
     delayMicroseconds(5);
-
     pinMode(SCL, INPUT_PULLUP);
-    delayMicroseconds(5);
-  }
+    delayMicroseconds(5);}
 
   // STOP podmínka — VŽDY, když jsme dělali clearing
   pinMode(SCL, OUTPUT);
   digitalWrite(SCL, LOW);       // SCL = LOW
   delayMicroseconds(5);
-
   pinMode(SDA, OUTPUT);
   digitalWrite(SDA, LOW);       // SDA = LOW
   delayMicroseconds(5);
-
   pinMode(SCL, INPUT_PULLUP);   // SCL jde HIGH
   delayMicroseconds(5);
-
   pinMode(SDA, INPUT_PULLUP);   // SDA LOW->HIGH při SCL=HIGH = STOP
-  delayMicroseconds(5);
-}
+  delayMicroseconds(5);}
 
 // Obnovení běžného I2C režimu
 pinMode(SDA, INPUT_PULLUP);
@@ -512,22 +504,23 @@ pinMode(SCL, INPUT_PULLUP);
 
   // Tacho: D3 / INT1.
   pinMode(TACHO_PIN, INPUT_PULLUP);
+  
+  // Magic number nesedí = studený start (v RAM je bordel).
+  // Sedí = reset za jízdy, TRIP a TOP zůstávají.
+  bool studenyStart = (tripMagic != TRIP_MAGIC);
 
-  zobrazUvodniLogo();
+  if (studenyStart)
+  { tripMetry = 0;
+    topRychlostKmh = 0;
+    tripMagic = TRIP_MAGIC;
+    
+  zobrazUvodniLogo();     // logo jen při studeném startu
+  }
 
   // Heartbeat běží od teď dál, nezávisle na zbytku programu.
   nastavHeartbeatTimer();
 
   nactiOdoZEEPROM();
-
-  // Magic number sedí = reset za jízdy, TRIP zůstává. Jinak studený start.
-  if (tripMagic != TRIP_MAGIC)
-  {    tripMetry = 0;
-    topRychlostKmh = 0;
-    tripMagic = TRIP_MAGIC;
-  }
-  
-
   odoNaposledyUlozeno = odoMetry;
 
   // Přerušení pro kolo.
