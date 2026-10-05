@@ -8,7 +8,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi MultiGauge V1.6";
+const char FW_VERZE[] = "Stadi MultiGauge V1.62";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -39,11 +39,13 @@ const char FW_VERZE[] = "Stadi MultiGauge V1.6";
 // 1) NASTAVENÍ
 // ============================================================
 
-// --- OLED init ---
-//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
-//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
+// --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
+#define TEST_MULTIPLIER 1
 
+// --- OLED init ---
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
+// u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
+//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- SPEEDO snímač kola (INT0) ---
 const byte SENSOR_PIN = 2;
@@ -78,7 +80,7 @@ const float TACHO_KALMAN_Q = 2.0; // Vyšší Q = rychlejší reakce na vrknutí
 const float TACHO_KALMAN_R = 8.0;
 
 // --- Welcome logo ---
-const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1000UL;
+const unsigned long LOGO_DOBA_ZOBRAZENI_MS = 1500UL;
 const byte LOGO_POCET_BLIKNUTI = 8;
 
 // --- EEPROM / ODO ---
@@ -100,10 +102,11 @@ const unsigned long DISPLEJ_INTERVAL_MS = 100;
 // -- Ujetá vzdálenost --
 unsigned long odoMetry = 0;
 
-// TRIP + magic number leží v .noinit -> startup kód je při resetu
+// TRIP a TOPSPEED + magic number leží v .noinit -> startup kód je při resetu
 // nenuluje. Při studeném startu v nich je náhodný obsah.
 unsigned long tripMetry __attribute__((section(".noinit")));
 unsigned long tripMagic __attribute__((section(".noinit")));
+unsigned int topRychlostKmh __attribute__((section(".noinit")));
 
 // -- Aktuální rychlost --
 unsigned int zobrazenaRychlostKmh = 0;
@@ -159,84 +162,55 @@ volatile uint8_t heartbeatPocitadloPreruseni = 0;
 // ============================================================
 
 #if KONTROLA_NAPETI_ZAPNUTA
-
 long nactiNapetiVcc()
-{
-  // Na 328PB čteme interní bandgap vůči Vcc.
+{  // Na 328PB čteme interní bandgap vůči Vcc.
   ADCSRB &= ~(1 << 5);
   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-
   delayMicroseconds(500);
   ADCSRA |= _BV(ADSC);
   while (bit_is_set(ADCSRA, ADSC));
-
   uint16_t vysledekAdc = ADC;
-
   const long VCC_KALIBRACNI_KONSTANTA = 1125300L;
-
-  return VCC_KALIBRACNI_KONSTANTA / vysledekAdc;
-}
-
+  return VCC_KALIBRACNI_KONSTANTA / vysledekAdc;}
 #endif
 
 // ============================================================
-// 4) EEPROM - ukládání ODO, TRIP
+// 4) EEPROM a RAM - ukládání ODO, TRIP, MAXRPM
 // ============================================================
 
 void nactiOdoZEEPROM()
-{
-  unsigned long nejvyssiPlatnaHodnota = 0;
+{  unsigned long nejvyssiPlatnaHodnota = 0;
   int adresaSNejvyssiHodnotou = ODO_ADR_START;
-
   for (int adr = ODO_ADR_START; adr <= ODO_ADR_KONEC; adr += 4)
-  {
-    unsigned long hodnota = 0;
+  { unsigned long hodnota = 0;
     EEPROM.get(adr, hodnota);
-
     if (hodnota == 0xFFFFFFFFUL) continue;
-
     if (hodnota > ODO_FYZICKY_STROP_M) continue;
-
     bool jePodezreleVysoka =
       nejvyssiPlatnaHodnota > 0 &&
       hodnota > nejvyssiPlatnaHodnota + ODO_MAX_SKOK_MEZI_BUNKAMI_M;
-
     if (jePodezreleVysoka) continue;
-
     if (hodnota >= nejvyssiPlatnaHodnota)
-    {
-      nejvyssiPlatnaHodnota = hodnota;
-      adresaSNejvyssiHodnotou = adr;
-    }
+    { nejvyssiPlatnaHodnota = hodnota;
+      adresaSNejvyssiHodnotou = adr;}
   }
-
   odoMetry = nejvyssiPlatnaHodnota;
-  odoAdresaAktualni = adresaSNejvyssiHodnotou;
-}
+  odoAdresaAktualni = adresaSNejvyssiHodnotou;}
 
 bool ulozOdoDoEEPROM(unsigned long hodnotaMetru)
 {
 #if KONTROLA_NAPETI_ZAPNUTA
   if (nactiNapetiVcc() < MIN_VCC_PRO_ZAPIS_MV)
-  {
-    return false;
-  }
+  { return false; }
 #endif
-
   odoAdresaAktualni += 4;
-
   if (odoAdresaAktualni > ODO_ADR_KONEC)
-  {
-    odoAdresaAktualni = ODO_ADR_START;
-  }
-
+  { odoAdresaAktualni = ODO_ADR_START;}
   EEPROM.put(odoAdresaAktualni, hodnotaMetru);
-  return true;
-}
+  return true;}
 
-// --- TRIP přežívá reset (kontrola obsahu RAM) ---
+// --- TRIP a MAX RPM přežívajou reset (detekce sraček v RAM) ---
 const unsigned long TRIP_MAGIC = 0xA5C3F00DUL;  // platná RAM = pokračuj, jinak nuluj
-
 
 
 // ============================================================
@@ -548,7 +522,11 @@ pinMode(SCL, INPUT_PULLUP);
 
   // Magic number sedí = reset za jízdy, TRIP zůstává. Jinak studený start.
   if (tripMagic != TRIP_MAGIC)
-  {tripMetry = 0;tripMagic = TRIP_MAGIC;}
+  {    tripMetry = 0;
+    topRychlostKmh = 0;
+    tripMagic = TRIP_MAGIC;
+  }
+  
 
   odoNaposledyUlozeno = odoMetry;
 
@@ -608,21 +586,19 @@ void zpracujNovySpeedoPulzPokudExistuje()
   zobrazenaRychlostKmh =
     (unsigned int)(vyhlazenaKmh + 0.5);
 
+  //TOP SPEED
+  if (zobrazenaRychlostKmh > topRychlostKmh)
+  { topRychlostKmh = zobrazenaRychlostKmh;}
+
   // Akumulace zlomkových metrů.
   static float zbytekMetruAkumulator = 0.0;
-
   zbytekMetruAkumulator += OBVOD_KOLA_M;
-
   if (zbytekMetruAkumulator >= 1.0)
-  {
-    unsigned long celeMetry =
+  {    unsigned long celeMetry =
       (unsigned long)zbytekMetruAkumulator;
-
     odoMetry += celeMetry;
     tripMetry += celeMetry;
-
-    zbytekMetruAkumulator -= celeMetry;
-  }
+    zbytekMetruAkumulator -= celeMetry; }
 
   // EEPROM zápis po 100 m.
   if (odoMetry - odoNaposledyUlozeno >= KROK_ULOZENI_M)
@@ -751,8 +727,12 @@ void loop()
 // 16) DISPLEJ
 // ============================================================
 
-// --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
-#define TEST_MULTIPLIER 1
+
+// Ikonka top speed 5x7: (šipka nahoru)
+const uint8_t IKONA_TOP[] PROGMEM = {
+0xff,0xe4,0xee,0xff,0xe4,0xe4,0xe4
+};
+
 
 void vykresliDashboard()
 {
@@ -763,9 +743,10 @@ void vykresliDashboard()
   unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
 
   // ----------------------------------------------------------
-  // RPM vpravo nahoře (ve stovkách RPM).
+  // RPM vpravo nahoře (ve stovkách RPM). Zobrazí se pokud nějaké otáčky čteme
   // Např. 8000 RPM = 80
   // ----------------------------------------------------------
+ if (testRpm !=0){
   u8g2.setFont(u8g2_font_logisoso24_tn);
 
   // Převod na stovky RPM (dělení 100)
@@ -787,6 +768,7 @@ void vykresliDashboard()
     // Pro třímístné číslo (např. "112", "150")
     u8g2.setCursor(85, 31); }
   u8g2.print(rpmText);
+  }
 
   // ----------------------------------------------------------
   // Velké číslo rychlosti.
@@ -794,7 +776,7 @@ void vykresliDashboard()
   u8g2.setFont(u8g2_font_logisoso58_tn);
 
   if (testRychlost < 10)
-  { u8g2.setCursor(37, 58); }
+  { u8g2.setCursor(37, 58); } // (x,y)
   else if (testRychlost < 100)
   { u8g2.setCursor(6, 58);}
   else
@@ -802,47 +784,68 @@ void vykresliDashboard()
   u8g2.print(testRychlost);
 
   // ----------------------------------------------------------
-  // ODO, TRIP a text rpm (zobrazují se pouze při rychlosti <= 19 km/h)
+  // TOP SPEED vlevo nahoře (jen když stojíme a něco už se zaznamenalo).
   // ----------------------------------------------------------
-  if (testRychlost <= 19)
-  { u8g2.setFont(u8g2_font_6x10_tf);
+  if (testRychlost == 0 && topRychlostKmh !=0){
+    if (testRpm == 0) {u8g2.drawXBMP(98, 17, 5, 7, IKONA_TOP);} // (šipka nahoru; x,y,w,h)
+    else {u8g2.drawXBMP(0, 10, 5, 8, IKONA_TOP);}
+    u8g2.setFont(u8g2_font_6x10_tf);
+    if (testRpm == 0) {u8g2.setCursor(106, 24);}
+    else {u8g2.setCursor(7, 17);}
+    u8g2.print(topRychlostKmh * TEST_MULTIPLIER);
+  }
 
-     // Popisek x100.
-     //u8g2.setCursor(95, 51);
-     //u8g2.print("x100");
-     
-    // Popisek rpm.
-     u8g2.setCursor(103, 41);
-     u8g2.print("rpm");
+  // ----------------------------------------------------------
+  // Další drobné nápisy; ODO, TRIP a text rpm
+  // ----------------------------------------------------------
+
+{  u8g2.setFont(u8g2_font_6x10_tf);
+
+    // TRIP, tady je vidět stále
+    float tripKm = tripMetry / 1000.0;
+    char cisloTripu[8];
+    dtostrf(tripKm, 4, 1, cisloTripu);
+    char *zacatekCisla = cisloTripu;
+    while (*zacatekCisla == ' ') { zacatekCisla++; }
+    char tripText[12];
+    snprintf(tripText, sizeof(tripText), "t %s", zacatekCisla);
+    int sirkaTextu = u8g2.getStrWidth(tripText);
+    u8g2.setCursor(128 - sirkaTextu, 64);
+    u8g2.print(tripText);
+
+
+  // Popisek km/h, jen když nečteme RPM
+  if (testRpm == 0) {
+    u8g2.setCursor(98, 36);
+    u8g2.print("km/h");
+  }
+
+  if (testRychlost <= 19)
+  {
+    // Popisek rpm
+    if (testRpm != 0) {
+      u8g2.setCursor(103, 41);
+      u8g2.print("rpm");
+    }
 
     // ODO
     u8g2.setCursor(0, 64);
     u8g2.print(odoMetry / 1000);
 
     // TRIP
-    float tripKm = tripMetry / 1000.0;
-
-    char cisloTripu[8];
-    dtostrf(tripKm, 4, 1, cisloTripu);
-
-    char *zacatekCisla = cisloTripu;
-
-    while (*zacatekCisla == ' ')
-    { zacatekCisla++;}
-
-    char tripText[12];
-
-    snprintf(
-      tripText,
-      sizeof(tripText),
-      "t %s",
-      zacatekCisla
-    );
-
-    int sirkaTextu = u8g2.getStrWidth(tripText);
-    u8g2.setCursor( 128 - sirkaTextu, 64 );
-    u8g2.print(tripText);
+//    float tripKm = tripMetry / 1000.0;
+//    char cisloTripu[8];
+//    dtostrf(tripKm, 4, 1, cisloTripu);
+//    char *zacatekCisla = cisloTripu;
+//    while (*zacatekCisla == ' ') { zacatekCisla++; }
+//    char tripText[12];
+//    snprintf(tripText, sizeof(tripText), "t %s", zacatekCisla);
+//    int sirkaTextu = u8g2.getStrWidth(tripText);
+//    u8g2.setCursor(128 - sirkaTextu, 64);
+//    u8g2.print(tripText);
   }
-
+}
+  
+ 
   u8g2.sendBuffer();
 }

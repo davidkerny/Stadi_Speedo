@@ -3,34 +3,44 @@
 V1.3 Initial
 
 V1.4 
-- Watchdog spuštěn už na začátku setupu, nutno 
-vyzkoušet jeslti nebude timeoutovat při běžném provozu
-- I2C timeout nejde udělat. tak aspoň "odseknutí", I2C BUS CLEAR devíti pulzy
-- během loga 8x blikne LED, pro rozlišení od blikání heartbeatu
+	- Watchdog spuštěn už na začátku setupu, nutno 
+	vyzkoušet jeslti nebude timeoutovat při běžném provozu
+	- I2C timeout nejde udělat. tak aspoň "odseknutí", I2C BUS CLEAR devíti pulzy
+	- během loga 8x blikne LED, pro rozlišení od blikání heartbeatu
 
 v1.5
- - oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
-jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
+	 - oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
+	jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
 
-nová const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
- // Fyzikální strop na zrychlení/zpomalení (km/h za vteřinu).
- // Nastaveno benevolentně, protože moped umí zrychlovat kurevsky.
- // Chrání proti periodickému/korelovanému rušení, které dokáže
- // "souhlasit samo se sebou" napříč více pulzy, ale nedokáže
- // obelhat fyziku (čas mezi pulzy).
+	nová const float MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 60.0;
+	 // Fyzikální strop na zrychlení/zpomalení (km/h za vteřinu).
+	 // Nastaveno benevolentně, protože moped umí zrychlovat kurevsky.
+	 // Chrání proti periodickému/korelovanému rušení, které dokáže
+	 // "souhlasit samo se sebou" napříč více pulzy, ale nedokáže
+	 // obelhat fyziku (čas mezi pulzy).
 
 Sketch uses 24890 bytes (76%) of program storage space. Maximum is 32384 bytes.
 Global variables use 1751 bytes (85%) of dynamic memory. Odhadovaná potřeba ~150 B
 
 v1.52 
- - tuning fyzických rozměrů kola, drobný úklid
+	- tuning fyzických rozměrů kola, drobný úklid
 
 v1.53
- - MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
- - MAX_SKOK_KMH = 120.0;  vypnuto taky
+	- MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
+	- MAX_SKOK_KMH = 120.0;  vypnuto taky
 
 v1.6
-  Zachování obsahu RAM po resetu za jízdy. (TRIP metr) kontrola validity RAM skrze magic number. Po delší odstávce jede TRIP od nuly
+	Zachování obsahu RAM po resetu za jízdy. (TRIP metr) kontrola validity RAM skrze magic number. Po delší odstávce jede TRIP od nuly
+
+v1.61
+	TOP Speed, retained v RAM jako TRIPmetr, zobrazené při stání v levém hornim rohu, pokud už se něco zaznamenalo.
+	RPM se zobrazují jen když nějaké čteme
+
+v1.62
+	reorganizace LCD; trip se zobrazuje stále, když nečteme RPM, vpravo nápis km/h a TOPSPEED
 
 
+
+Sketch uses 22218 bytes (68%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1647 bytes (80%) of dynamic memory, leaving 401 bytes for local variables.
 
