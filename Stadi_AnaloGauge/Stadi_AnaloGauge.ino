@@ -9,7 +9,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.51";
+const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.6";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -122,7 +122,7 @@ const float X27_MIN_KMH = 4.0;       //  km/h, kdy ručička opustí doraz
 
 // Minimální doba mezi kroky  aka rychlost pohybu
 const unsigned long X27_MIN_KROK_US = 2000UL;
-const unsigned long X27_HOMING_KROK_US = 1300UL;
+const unsigned long X27_HOMING_KROK_US = 1500UL;  // puvodne 1300. Pomalejsi kvuli line rucicce s feritama
 
 const bool X27_OBRACENY_SMER = 1;
 
@@ -132,7 +132,12 @@ const bool X27_OBRACENY_SMER = 1;
 
 // -- Ujetá vzdálenost --
 unsigned long odoMetry = 0;
-unsigned long tripMetry = 0;
+
+// TRIP a TOPSPEED + magic number leží v .noinit -> startup kód je při resetu
+// nenuluje. Při studeném startu v nich je náhodný obsah.
+unsigned long tripMetry __attribute__((section(".noinit")));
+unsigned long tripMagic __attribute__((section(".noinit")));
+unsigned int topRychlostKmh __attribute__((section(".noinit")));
 
 // -- Aktuální rychlost --
 unsigned int zobrazenaRychlostKmh = 0;
@@ -189,23 +194,16 @@ volatile uint8_t heartbeatPocitadloPreruseni = 0;
 // ============================================================
 
 #if KONTROLA_NAPETI_ZAPNUTA
-
 long nactiNapetiVcc()
-{
-  // Na 328PB čteme interní bandgap vůči Vcc.
+{  // Na 328PB čteme interní bandgap vůči Vcc.
   ADCSRB &= ~(1 << 5);
   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-
   delayMicroseconds(500);
   ADCSRA |= _BV(ADSC);
   while (bit_is_set(ADCSRA, ADSC));
-
   uint16_t vysledekAdc = ADC;
-
   const long VCC_KALIBRACNI_KONSTANTA = 1125300L;
-
-  return VCC_KALIBRACNI_KONSTANTA / vysledekAdc;
-}
+  return VCC_KALIBRACNI_KONSTANTA / vysledekAdc;}
 
 #endif
 
@@ -214,78 +212,55 @@ long nactiNapetiVcc()
 // ============================================================
 
 void nactiOdoZEEPROM()
-{
-  unsigned long nejvyssiPlatnaHodnota = 0;
+{ unsigned long nejvyssiPlatnaHodnota = 0;
   int adresaSNejvyssiHodnotou = ODO_ADR_START;
 
   for (int adr = ODO_ADR_START; adr <= ODO_ADR_KONEC; adr += 4)
-  {
-    unsigned long hodnota = 0;
+  { unsigned long hodnota = 0;
     EEPROM.get(adr, hodnota);
 
     if (hodnota == 0xFFFFFFFFUL) continue;
-
     if (hodnota > ODO_FYZICKY_STROP_M) continue;
-
     bool jePodezreleVysoka =
       nejvyssiPlatnaHodnota > 0 &&
       hodnota > nejvyssiPlatnaHodnota + ODO_MAX_SKOK_MEZI_BUNKAMI_M;
-
     if (jePodezreleVysoka) continue;
-
     if (hodnota >= nejvyssiPlatnaHodnota)
-    {
-      nejvyssiPlatnaHodnota = hodnota;
-      adresaSNejvyssiHodnotou = adr;
-    }
-  }
+    {nejvyssiPlatnaHodnota = hodnota;
+      adresaSNejvyssiHodnotou = adr;}}
 
   odoMetry = nejvyssiPlatnaHodnota;
-  odoAdresaAktualni = adresaSNejvyssiHodnotou;
-}
+  odoAdresaAktualni = adresaSNejvyssiHodnotou;}
 
 bool ulozOdoDoEEPROM(unsigned long hodnotaMetru)
 {
 #if KONTROLA_NAPETI_ZAPNUTA
   if (nactiNapetiVcc() < MIN_VCC_PRO_ZAPIS_MV)
-  {
-    return false;
-  }
+  {return false;}
 #endif
-
   odoAdresaAktualni += 4;
-
   if (odoAdresaAktualni > ODO_ADR_KONEC)
-  {
-    odoAdresaAktualni = ODO_ADR_START;
-  }
-
+  {odoAdresaAktualni = ODO_ADR_START;}
   EEPROM.put(odoAdresaAktualni, hodnotaMetru);
-  return true;
-}
+  return true;}
+
+  // --- TRIP a MAX RPM přežívajou reset (detekce sraček v RAM) ---
+const unsigned long TRIP_MAGIC = 0xA5C3F00DUL;  // platná RAM = pokračuj, jinak nuluj
+
 
 // ============================================================
 // 5) PŘERUŠENÍ - SPEEDO
 // ============================================================
 
 void snimacSpeedoPreruseni()
-{
-  unsigned long ted = micros();
-
+{ unsigned long ted = micros();
   if (speedoIsrCasPoslednihoPulzuUs == 0)
-  {
-    speedoIsrCasPoslednihoPulzuUs = ted;
-    return;
-  }
-
+  {    speedoIsrCasPoslednihoPulzuUs = ted;
+    return; }
   unsigned long interval = ted - speedoIsrCasPoslednihoPulzuUs;
-
   // Kratší pulzy zahazujem rovnou v ISR jako rušení.
   if (interval < MIN_MEZERA_PULZU_US)
-  {
-    return;
-  }
-
+  { return;}
   speedoIsrDelkaPoslednihoIntervaluUs = interval;
   speedoIsrCasPoslednihoPulzuUs = ted;
   speedoIsrMameNovyPulz = true;
@@ -296,23 +271,13 @@ void snimacSpeedoPreruseni()
 // ============================================================
 
 void snimacTachoPreruseni()
-{
-  unsigned long ted = micros();
-
-  if (tachoIsrCasPoslednihoPulzuUs == 0)
-  {
-    tachoIsrCasPoslednihoPulzuUs = ted;
-    return;
-  }
-
+{unsigned long ted = micros();
+if (tachoIsrCasPoslednihoPulzuUs == 0)
+  { tachoIsrCasPoslednihoPulzuUs = ted; return;}
   unsigned long interval = ted - tachoIsrCasPoslednihoPulzuUs;
-
   // Bordel od zapalování - pokud je pulz moc brzo, ignorujem ho.
   if (interval < MIN_MEZERA_TACHO_US)
-  {
-    return;
-  }
-
+  {return;}
   tachoIsrDelkaPoslednihoIntervaluUs = interval;
   tachoIsrCasPoslednihoPulzuUs = ted;
   tachoIsrMameNovyPulz = true;
@@ -323,48 +288,33 @@ void snimacTachoPreruseni()
 // ============================================================
 
 float vyhladRychlost(float noveMereniKmh)
-{
-  kalman_p = kalman_p + KALMAN_Q;
-
+{kalman_p = kalman_p + KALMAN_Q;
   float zisk = kalman_p / (kalman_p + KALMAN_R);
-
   kalman_x = kalman_x + zisk * (noveMereniKmh - kalman_x);
   kalman_p = (1.0 - zisk) * kalman_p;
-
-  return kalman_x;
-}
+  return kalman_x;}
 
 bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh)
-{
-  bool vysledek = true;
-
-  if (surovaRychlostKmh > MAX_ROZUMNA_RYCHLOST_KMH)
-  {
-    vysledek = false;
-  }
+{bool vysledek = true;
+ if (surovaRychlostKmh > MAX_ROZUMNA_RYCHLOST_KMH)
+  {vysledek = false;}
 
   if (vysledek && jsmeVPohybu)
-  {
-    float rozdilOdVyhlazene = fabs(surovaRychlostKmh - kalman_x);
+  {float rozdilOdVyhlazene = fabs(surovaRychlostKmh - kalman_x);
 
     if (rozdilOdVyhlazene > MAX_SKOK_KMH)
-    {
-      bool souhlasiSPredchozim =
+    { bool souhlasiSPredchozim =
         mamePredchoziPulz &&
         fabs(surovaRychlostKmh - posledniSurovaRychlostKmh)
           < MAX_ROZDIL_SOUSEDNICH_PULZU_KMH;
 
       if (souhlasiSPredchozim)
-      {
-        // Dva pulzy za sebou si sedí -> reálné zrychlení. 
+      { // Dva pulzy za sebou si sedí -> reálné zrychlení. 
         // NEBO rychlá resynchronizace po resetu za jízdy
         kalman_x = surovaRychlostKmh;
         kalman_p = 1.0;
       }
-      else
-      {
-        vysledek = false;
-      }
+      else{vysledek = false;}
     }
   }
 
@@ -376,51 +326,36 @@ bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh)
 // ============================================================
 
 float vyhladRpm(float noveMereniRpm)
-{
-  tachoKalman_p = tachoKalman_p + TACHO_KALMAN_Q;
-
+{ tachoKalman_p = tachoKalman_p + TACHO_KALMAN_Q;
   float zisk =
     tachoKalman_p / (tachoKalman_p + TACHO_KALMAN_R);
-
   tachoKalman_x =
     tachoKalman_x +
     zisk * (noveMereniRpm - tachoKalman_x);
-
   tachoKalman_p =
     (1.0 - zisk) * tachoKalman_p;
-
-  return tachoKalman_x;
-}
+  return tachoKalman_x;}
 
 bool jePulzTachaDuveryhodny(float suroveRpm)
-{
-  if (suroveRpm > MAX_ROZUMNE_RPM ||
+{if (suroveRpm > MAX_ROZUMNE_RPM ||
       suroveRpm < MIN_ROZUMNE_RPM)
-  {
-    return false;
-  }
+  {return false;}
 
   if (motorBezi)
-  {
-    float rozdil = fabs(suroveRpm - tachoKalman_x);
+  { float rozdil = fabs(suroveRpm - tachoKalman_x);
 
     if (rozdil > MAX_SKOK_RPM)
-    {
-      bool souhlasiSPredchozim =
+    { bool souhlasiSPredchozim =
         tachoMamePredchoziPulz &&
         fabs(suroveRpm - posledniSuroveRpm)
           < MAX_ROZDIL_SOUSEDNICH_PULZU_RPM;
 
       if (souhlasiSPredchozim)
-      {
-        // Dva pulzy po sobě sedí -> motor fakt změnil otáčky.
+      {// Dva pulzy po sobě sedí -> motor fakt změnil otáčky.
         tachoKalman_x = suroveRpm;
-        tachoKalman_p = 1.0;
-      }
+        tachoKalman_p = 1.0;}
       else
-      {
-        return false;
-      }
+      {return false;}
     }
   }
 
@@ -685,15 +620,22 @@ void setup()
   pinMode(X27_C, OUTPUT);
   pinMode(X27_D, OUTPUT);
 
-  zobrazUvodniLogo();
+  // Magic number nesedí = studený start (v RAM je bordel).
+  // Sedí = reset za jízdy, TRIP a TOP zůstávají.
+  bool studenyStart = (tripMagic != TRIP_MAGIC);
+  if (studenyStart)
+  { tripMetry = 0;
+    topRychlostKmh = 0;
+    tripMagic = TRIP_MAGIC;
+    
+  zobrazUvodniLogo();     // logo jen při studeném startu
+  }
 
   nastavHeartbeatTimer();
 
   HomingRucicky();
 
   nactiOdoZEEPROM();
-  tripMetry = 0;
-
   odoNaposledyUlozeno = odoMetry;
 
   // Přerušení pro kolo.
@@ -761,6 +703,10 @@ void zpracujNovySpeedoPulzPokudExistuje()
   float vyhlazenaKmh = vyhladRychlost(surovaRychlostKmh);
   zobrazenaRychlostKmh =
     (unsigned int)(vyhlazenaKmh + 0.5);
+
+   //TOP SPEED
+  if (zobrazenaRychlostKmh > topRychlostKmh)
+  { topRychlostKmh = zobrazenaRychlostKmh;}
 
   // Akumulace zlomkových metrů.
   static float zbytekMetruAkumulator = 0.0;
@@ -920,11 +866,14 @@ void loop()
 // 16) DISPLEJ
 // ============================================================
 
+// Ikonka top speed 5x7: (šipka nahoru)
+const uint8_t IKONA_TOP[] PROGMEM = {
+0xff,0xe4,0xee,0xff,0xe4,0xe4,0xe4
+};
+
 void vykresliDashboard()
 {
-  // Aplikace násobiče pro testovací účely - škáluje jak
-  // ručičku, tak digitální readout na OLED, ať jde otestovat
-  // celý řetězec i bez skutečné jízdy.
+  // Aplikace násobiče pro testovací účely - škáluje jak OLED tak ručičku
   unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
 
   // Ručička dostává cíl při každém překreslení displeje
@@ -968,7 +917,15 @@ void vykresliDashboard()
   char radekRychlost[16];
   snprintf(radekRychlost, sizeof(radekRychlost), "%u km/h", testRychlost);
   u8g2.setCursor(0, 30);
-  u8g2.print(radekRychlost);
+  u8g2.print(radekRychlost); 
+
+// -- TOP speed --
+    if (testRychlost == 0 && topRychlostKmh !=0){
+    u8g2.drawXBMP(60, 23, 5, 8, IKONA_TOP);// (šipka nahoru; x,y,w,h)
+    u8g2.setCursor(68,30);
+    u8g2.print(topRychlostKmh * TEST_MULTIPLIER);
+  }
+
 
   
 

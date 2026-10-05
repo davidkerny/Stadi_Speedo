@@ -22,7 +22,10 @@ Stadi AnaloGauge X27
 	oživí čtení rychlosti taky v případě resetu budíku za jízdy. PODLE MultiGauge 1.5
 1.51	bugfix jsmevpohybu, MAX_SKOK_KMH = 120.0: test jestli to naváže i po resetu za jízdy
 
-
+1.6	Zachování RAM po resetu: TRIP metr a TOPSPEED zůstává, 
+	kontrola validity magic number, 
+	nový TOP speed údaj
+	po resetu se nezobrazuje welcome logo
 
 _______________
 
