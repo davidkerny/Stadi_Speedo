@@ -1,8 +1,11 @@
-Tacho V1 vychází ze Speedo V6
+Varianty pro Stadi_Speedo HW board:
 
-MultiGauge V1 vychází ze Speedo V6 + Tacho V1
+  - Tacho V1 vychází ze Speedo V6
+  - MultiGauge V1 vychází ze Speedo V6 + Tacho V1 
+  - AnaloGauge V1 vychází z MultiGauge V1.3
 
-AnaloGauge V1 vychází z MultiGauge V1.3
+________________________
+Varianty pro Waveshare ESP32-S3 2.1 TOUCH LCD board:
 
-ESPGauge vychazi z Multigauge V1.5
+  - WS21 Gauge
 
