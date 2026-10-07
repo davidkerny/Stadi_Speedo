@@ -1,0 +1,28 @@
+Designator,Footprint,Comment
+", , , , , ",C_0603_1608Metric,
+", , , , ",,
+"C1, C2, C5, C6",C_0603_1608Metric,1u
+"C3, C11, C12, C13, C14",C_0603_1608Metric,100n
+C4,CP_EIA-3216-10_Kemet-I,4u7_16V
+C15,C_0603_1608Metric,10n
+"D1, D7",LED_0805_2012Metric,Yellow
+D2,LED_0805_2012Metric,Green
+D3,D_0603_1608Metric,D_Small
+D6,D_SOD-123F,1N4148W
+D8,D_SMC_Handsoldering,SMCJ85CA
+J2,PinHeader_1x04_P2.54mm_Vertical,OLED I2C
+J3,PinHeader_1x03_P2.54mm_Vertical,ICSP
+J4,PinHeader_1x03_P2.54mm_Vertical,Conn_01x03_Pin
+J5,PinHeader_1x04_P2.54mm_Vertical,SPÍD & PWR
+J6,PinHeader_1x04_P2.54mm_Vertical,AUX DDAA
+J7,PinHeader_1x02_P2.54mm_Vertical,ENG RPM
+Q1,Panasonic_APV-AQY_SSOP-4_4.45x2.65mm_P1.27mm,140817143200
+Q2,Panasonic_APV-AQY_SSOP-4_4.45x2.65mm_P1.27mm,PC817
+"R1, R4, R5, R12",R_0603_1608Metric,1k
+R8,R_0603_1608Metric,15k
+R9,R_MELF_MMB-0207,200R
+R10,R_0603_1608Metric,10k
+R11,R_0603_1608Metric,470R
+U1,QFN-32-1EP_5x5mm_P0.5mm_EP3.1x3.1mm,Mikroprofesor
+U3,SOT-223-3_TabPin2,LM1117MP-5.0
+Y1,Resonator_SMD_Murata_CSTxExxV-3Pin_3.0x1.1mm,16MHz

@@ -1,0 +1,53 @@
+### Footprint positions - created on 2026-07-07T22:26:55 ###
+### Printed by KiCad version 10.0.4
+## Unit = mm, Angle = deg.
+## Side : All
+# Ref     Val             Package                                            PosX       PosY       Rot  Side
+                                                                         112.0887  -162.1550    0.0000  top
+                          C_0603_1608Metric                              122.2771  -140.7514  -90.0000  top
+                          C_0603_1608Metric                              129.8655  -137.7414  -90.0000  top
+                          C_0603_1608Metric                              127.3736  -137.7414  -90.0000  top
+                                                                         116.3681  -127.8037    0.0000  top
+                                                                         118.9080  -127.8175    0.0000  top
+                          C_0603_1608Metric                              124.8675  -140.7820  -90.0000  top
+                          C_0603_1608Metric                              122.2635  -137.7234  -90.0000  top
+                                                                         104.8833  -145.3536    0.0000  top
+                          C_0603_1608Metric                              124.8637  -137.7595  -90.0000  top
+                                                                         104.7532  -139.6292    0.0000  top
+C1        1u              C_0603_1608Metric                              106.1831  -147.5885  180.0000  top
+C2        1u              C_0603_1608Metric                              136.3495  -137.2832  110.0000  top
+C3        100n            C_0603_1608Metric                              123.5168  -145.0000    0.0000  top
+C4        4u7_16V         CP_EIA-3216-10_Kemet-I                         106.0277  -150.1219  180.0000  top
+C5        1u              C_0603_1608Metric                              119.5000  -155.9800    0.0000  top
+C6        1u              C_0603_1608Metric                              114.7802  -134.1560  180.0000  top
+C11       100n            C_0603_1608Metric                              121.6827  -151.2658  -90.0000  top
+C12       100n            C_0603_1608Metric                              127.3675  -140.7820  -90.0000  top
+C13       100n            C_0603_1608Metric                              129.8675  -140.7820  -90.0000  top
+C14       100n            C_0603_1608Metric                              132.5000  -148.5000    0.0000  top
+C15       10n             C_0603_1608Metric                              105.3212  -142.4955  -90.0000  top
+D1        Yellow          LED_0805_2012Metric                            135.8087  -148.8264    0.0000  top
+D2        Green           LED_0805_2012Metric                            126.5121  -161.0638   25.0000  top
+D3        D_Small         D_0603_1608Metric                              119.2925  -157.9800    0.0000  top
+D6        1N4148W         D_SOD-123F                                     108.5000  -142.5000  -90.0000  top
+D7        Yellow          LED_0805_2012Metric                            108.6892  -160.7618  155.0000  top
+D8        SMCJ85CA        D_SMC_Handsoldering                             99.9894  -143.6662   90.0000  top
+J2        OLED_I2C        PinHeader_1x04_P2.54mm_Vertical                121.5400  -131.5000  -90.0000  top
+J3        ICSP            PinHeader_1x03_P2.54mm_Vertical                137.0000  -140.9200    0.0000  top
+J4        Conn_01x03_Pin  PinHeader_1x03_P2.54mm_Vertical                133.4694  -140.9235    0.0000  top
+J5        SPÍD_&_PWR      PinHeader_1x04_P2.54mm_Vertical                114.7436  -162.1151   90.0000  top
+J6        AUX_DDAA        PinHeader_1x04_P2.54mm_Vertical                121.4600  -127.7572   90.0000  top
+J7        ENG_RPM         PinHeader_1x02_P2.54mm_Vertical                107.7250  -127.5000   90.0000  top
+Q1        140817143200    Panasonic_APV-AQY_SSOP-4_4.45x2.65mm_P1.27mm   111.3650  -140.8250   90.0000  top
+Q2        PC817           Panasonic_APV-AQY_SSOP-4_4.45x2.65mm_P1.27mm   125.8779  -151.2658    0.0000  top
+R1        1k              R_0603_1608Metric                              116.0000  -137.5000   90.0000  top
+R4        1k              R_0603_1608Metric                              131.0460  -150.2978    0.0000  top
+R5        1k              R_0603_1608Metric                              125.6545  -158.9194    0.0000  top
+R8        15k             R_0603_1608Metric                              107.0000  -138.5000   90.0000  top
+R9        200R            R_MELF_MMB-0207                                110.4908  -133.4620  -90.0000  top
+R10       10k             R_0603_1608Metric                              115.1750  -159.0000    0.0000  top
+R11       470R            R_0603_1608Metric                              119.4265  -151.3066   90.0000  top
+R12       1k              R_0603_1608Metric                              112.1967  -158.9967  180.0000  top
+U1        Mikroprofesor   QFN-32-1EP_5x5mm_P0.5mm_EP3.1x3.1mm            117.0300  -145.0000    0.0000  top
+U3        LM1117MP-5.0    SOT-223-3_TabPin2                              113.0000  -153.5000  180.0000  top
+Y1        16MHz           Resonator_SMD_Murata_CSTxExxV-3Pin_3.0x1.1mm   111.0000  -147.2000   90.0000  top
+## End
