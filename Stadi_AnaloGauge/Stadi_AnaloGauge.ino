@@ -9,7 +9,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.6";
+const char FW_VERZE[] = "AnaloGauge X27 V1.61";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -53,7 +53,7 @@ const char FW_VERZE[] = "Stadi AnaloGauge X27 V1.6";
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
-#define TEST_MULTIPLIER 1
+#define TEST_MULTIPLIER 2
 
 // --- Zapnout / Vypnout TACHO funkci ---
 //#define TACHO
@@ -102,8 +102,10 @@ const unsigned long ODO_MAX_SKOK_MEZI_BUNKAMI_M = 1000000UL;
 #define KONTROLA_NAPETI_ZAPNUTA 1
 const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 
-// --- Displej ---
+// --- DISPLEJ ---
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
+const uint16_t PRAH_RYCHLOSTI = 50;   // kdy se displej přepne na velké číslo km/h
+
 
 // ============================================================
 // 1B) NASTAVENÍ X27 168 - RUČIČKA SPEEDA
@@ -117,7 +119,7 @@ const byte X27_D = 5;
 // Kolik kroků odpovídá CELÉMU rozsahu ručičky (0 až max)
 const int X27_KROKU_CELKEM = 159*4;  // *4 bo jeden krok je sekvence 4 kliků
 
-const float X27_MAX_KMH = 103.0;     // Rozsah stupnice ciferníku.
+const float X27_MAX_KMH = 103.0;     // Rozsah stupnice ciferníku. Odpovídá Fichtl budíku
 const float X27_MIN_KMH = 4.0;       //  km/h, kdy ručička opustí doraz
 
 // Minimální doba mezi kroky  aka rychlost pohybu
@@ -530,7 +532,7 @@ void zobrazUvodniLogo()
   u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
 
   u8g2.setFont(u8g2_font_5x7_tf);
-  u8g2.setCursor(0, 31);
+  u8g2.setCursor(15, 28);
   u8g2.print(FW_VERZE);
 
   u8g2.sendBuffer();
@@ -886,48 +888,63 @@ void vykresliDashboard()
   //u8g2.setFont(u8g2_font_10x20_tf);
   //u8g2.setFont(u8g2_font_VCR_OSD_tu);
   //u8g2.setFont(u8g2_font_courB14_tf);  //patkove
-  //u8g2.setFont(u8g2_font_logisoso16_tn); //hezke ale moc vysoke
+  //u8g2.setFont(u8g2_font_logisoso16_tn); //hezke ale moc vysoke na origo fichtl face
   //u8g2.setFont(u8g2_font_crox4hb_tn);  //docela tučné, výška 21, álá helvetica
-  u8g2.setFont(u8g2_font_crox4h_tn);  //výška 21, álá helvetica
+  u8g2.setFont(u8g2_font_crox4h_tn);  //výška 21, álá helvetica (setcursor 0,14)
+
+
 
   
   // -- Řádek 1: ODO --
-  char radekOdo[16];
-  snprintf(radekOdo, sizeof(radekOdo), "%lu", odoMetry / 1000UL);
-  u8g2.setCursor(0, 14);
-  u8g2.print(radekOdo);
+  if (testRychlost < PRAH_RYCHLOSTI){
+  char radekOdo[16];  snprintf(radekOdo, sizeof(radekOdo), "%lu", odoMetry / 1000UL);
+  u8g2.setCursor(0, 17);
+  u8g2.print(radekOdo);}
 
-  // -- TRIP --
+
+  // -- TRIP (zarovnaný vpravo) --
+
   float tripKm = tripMetry / 1000.0;
-  char cisloTripu[8];
-  dtostrf(tripKm, 4, 1, cisloTripu);
-  char *zacatekCisla = cisloTripu;
-  while (*zacatekCisla == ' ')
-  {
-    zacatekCisla++;
-  }
-  char radekTrip[16];
-  snprintf(radekTrip, sizeof(radekTrip), "%s", zacatekCisla);
-  u8g2.setCursor(85, 14);
-  u8g2.print(radekTrip);
+  char cisloTripu[12];
+  dtostrf(tripKm, 1, 1, cisloTripu);          // min. šířka 1 = žádné mezery na začátku
+  int sirka = u8g2.getStrWidth(cisloTripu);   // šířka textu v pixelech
+  u8g2.setCursor(u8g2.getDisplayWidth() - sirka, 17);
+  u8g2.print(cisloTripu);
+
+
+  // -- VELKA RYCHLOST nad xx km/h --
+ //u8g2.setFont(u8g2_font_crox5hb_tn);  //výška 29, álá helvetica (setcursor 35,17)
+ u8g2.setFont(u8g2_font_logisoso32_tf);
+  if (testRychlost >= PRAH_RYCHLOSTI){
+ char radekRychlost[16];
+  snprintf(radekRychlost, sizeof(radekRychlost), "%u", testRychlost);
+  if (testRychlost > 99) {u8g2.setCursor(30, 32);}
+    else {u8g2.setCursor(43, 32);}
+  u8g2.print(radekRychlost);}
 
  u8g2.setFont(u8g2_font_6x10_tf);
 
-  // -- Řádek 2: km/h (diag. údaj, běžně ukrytý pod stupnicí) --
+   // -- VELKA RYCHLOST: maly popisek km/h --
+  if (testRychlost != 0 && testRychlost >= PRAH_RYCHLOSTI){
+  u8g2.setCursor(7, 18);
+  u8g2.print("km/h");}
+
+
+
+  // -- Řádek 2: Pomalá Rychlost + km/h --
+  if (testRychlost != 0 && testRychlost < PRAH_RYCHLOSTI){
   char radekRychlost[16];
   snprintf(radekRychlost, sizeof(radekRychlost), "%u km/h", testRychlost);
-  u8g2.setCursor(0, 30);
-  u8g2.print(radekRychlost); 
+  u8g2.setCursor(43, 32);
+  u8g2.print(radekRychlost);}
 
-// -- TOP speed --
+// -- Řádek 2: TOP speed --
     if (testRychlost == 0 && topRychlostKmh !=0){
-    u8g2.drawXBMP(60, 23, 5, 8, IKONA_TOP);// (šipka nahoru; x,y,w,h)
-    u8g2.setCursor(68,30);
-    u8g2.print(topRychlostKmh * TEST_MULTIPLIER);
-  }
-
-
+    u8g2.drawXBMP(50, 25, 5, 8, IKONA_TOP);// (šipka nahoru; x,y,w,h)
+    u8g2.setCursor(60,32);
+    u8g2.print(topRychlostKmh * TEST_MULTIPLIER);}
   
+
 
   u8g2.sendBuffer();
 }
