@@ -16,7 +16,7 @@ const char FW_VERZE[] = "AnaloGauge X27 V1.62";
 //  na pozadí, i když ho teď nikde nezobrazujeme - ať je hotový
 //  pro budoucí druhou ručičku).
 //
-//  RYCHLOST se teď ukazuje analogově přes krokový motorek
+//  RYCHLOST se ukazuje analogově přes krokový motorek
 //  X27 168, co hejbe ručičkou na stupnici.
 //
 //  Malý OLED (128x32) ukazuje jen: km/h textem (diagnostický/
