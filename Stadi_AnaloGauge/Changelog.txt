@@ -29,7 +29,7 @@ Stadi AnaloGauge X27
 1.61	Uklid na LCD, počítáme s výřezem pro OLED dle UniFacePCB
 	Nad nejakou hodnotu km/h se zobrazuje na OLEDu rychlost velkými čislicemi a skryje se ODO.
 
-
+1.62	LIMIT_STUPNICE = nad kolik km/h už ručička nemá zobrazovat, aby nejezdila přes OLED.
 
 
 

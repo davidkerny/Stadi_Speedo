@@ -9,7 +9,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "AnaloGauge X27 V1.61";
+const char FW_VERZE[] = "AnaloGauge X27 V1.62";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
@@ -53,7 +53,7 @@ const char FW_VERZE[] = "AnaloGauge X27 V1.61";
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
-#define TEST_MULTIPLIER 2
+#define TEST_MULTIPLIER 1
 
 // --- Zapnout / Vypnout TACHO funkci ---
 //#define TACHO
@@ -117,10 +117,14 @@ const byte X27_C = A1;
 const byte X27_D = 5;
 
 // Kolik kroků odpovídá CELÉMU rozsahu ručičky (0 až max)
-const int X27_KROKU_CELKEM = 159*4;  // *4 bo jeden krok je sekvence 4 kliků
+const int X27_KROKU_CELKEM = 159*4;  //  *4 bo jeden krok je sekvence 4 kliků
 
-const float X27_MAX_KMH = 103.0;     // Rozsah stupnice ciferníku. Odpovídá Fichtl budíku
 const float X27_MIN_KMH = 4.0;       //  km/h, kdy ručička opustí doraz
+//const float X27_MAX_KMH = 103.0;   //  103 Fichtl budík.
+const float X27_MAX_KMH = 83.0;      //  83 Stadion budík.
+
+//const float LIMIT_STUPNICE = 80.0; //  MAX rozsah stupnice Fichtl 80
+const float LIMIT_STUPNICE = 65.0;   //  MAX rozsah stupnice Stadion
 
 // Minimální doba mezi kroky  aka rychlost pohybu
 const unsigned long X27_MIN_KROK_US = 2000UL;
@@ -433,8 +437,9 @@ void HomingRucicky()
 //   nastavRucickuKmH(100);
 void nastavRucickuKmH(float hodnotaKmh)
 {
-  if (hodnotaKmh < 0) hodnotaKmh = 0;
-  if (hodnotaKmh > X27_MAX_KMH) hodnotaKmh = X27_MAX_KMH;
+if (hodnotaKmh < 0) hodnotaKmh = 0;
+if (hodnotaKmh > LIMIT_STUPNICE) hodnotaKmh = LIMIT_STUPNICE;  // konec stupnice na ciferníku
+if (hodnotaKmh > X27_MAX_KMH) hodnotaKmh = X27_MAX_KMH;
 
   // Pod minimem = ručička na dorazu
   if (hodnotaKmh <= X27_MIN_KMH)
@@ -886,12 +891,10 @@ void vykresliDashboard()
   u8g2.clearBuffer();
   //u8g2.setFont(u8g2_font_9x15B_tf);
   //u8g2.setFont(u8g2_font_10x20_tf);
-  //u8g2.setFont(u8g2_font_VCR_OSD_tu);
-  //u8g2.setFont(u8g2_font_courB14_tf);  //patkove
-  //u8g2.setFont(u8g2_font_logisoso16_tn); //hezke ale moc vysoke na origo fichtl face
-  //u8g2.setFont(u8g2_font_crox4hb_tn);  //docela tučné, výška 21, álá helvetica
+  //u8g2.setFont(u8g2_font_VCR_OSD_tu);  //deprecated
+  
+  //u8g2.setFont(u8g2_font_logisoso16_tn); //hezke.  moc vysoke na origo fichtl face
   u8g2.setFont(u8g2_font_crox4h_tn);  //výška 21, álá helvetica (setcursor 0,14)
-
 
 
   
