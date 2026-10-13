@@ -1,7 +1,6 @@
 *MULTIGAUGE CHANGELOG*
 
 V1.3 Initial
-
 V1.4 
 	- Watchdog spuštěn už na začátku setupu, nutno 
 	vyzkoušet jeslti nebude timeoutovat při běžném provozu
@@ -41,6 +40,32 @@ v1.62
 
 v1.63
 	při resetu se nezobrazuje welcome logo, ale rovnou navážeme. welcome logo jen při studeném startu.
-
 Sketch uses 25356 bytes (78%) of program storage space. Maximum is 32384 bytes.
 Global variables use 1763 bytes (86%) of dynamic memory, leaving 285 bytes for local variables.
+!!!!!!!!!!!!!!!!!!!!!!!STACK OVERFLOW!!!!!!!!! funguje na 328P nefunguje na 328PB!!!!!!!!!!
+
+v1.7	FIXED; Šetříme RAM
+	- displej používá page buffer (_2_) místo celého (_F_)  -> cca -770 B
+	- texty ve flash (PROGMEM / F())
+	- trip bez floatu a dtostrf
+
+
+
+______________________________________
+
+Pinout
+2   PD2   SPIDO
+3   PD3   TACHO
+13  PB5   LED, SCK
+A0  PC0   X27 A  nebo AUX
+4   PD4   X27 B  nebo AUX
+A1  PC1   X27 C  nebo AUX
+5   PD5   X27 D  nebo AUX
+
+11  PB3 MOSI
+12  PB4 MISO
+
+18/A4 PC4 SDA
+19/A5 PC5 SCL
+
+
