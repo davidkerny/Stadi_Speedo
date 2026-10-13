@@ -36,7 +36,8 @@ v1.61
 	RPM se zobrazují jen když nějaké čteme
 
 v1.62
-	reorganizace LCD; trip se zobrazuje stále, když nečteme RPM, vpravo nápis km/h a TOPSPEED
+	reorganizace LCD; trip se zobrazuje stále, když nečteme RPM, vpravo nápis km/h a TOPSPEED, aka uklizeno za všech podmínek
+	Multigauge de facto nahrazuje i Speedo.
 
 v1.63
 	při resetu se nezobrazuje welcome logo, ale rovnou navážeme. welcome logo jen při studeném startu.
