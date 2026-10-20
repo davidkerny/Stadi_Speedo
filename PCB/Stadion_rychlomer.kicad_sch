@@ -6245,6 +6245,16 @@
 		)
 		(uuid "1f08f295-ad7a-416f-852a-3ec406b388a8")
 	)
+	(text "https://cz.mouser.com/cs/c/semiconductors/power-management-ics/voltage-regulators-voltage-controllers/ldo-voltage-regulators/?input%20voltage%2C%20max=18%20V~~60%20V&number%20of%20outputs=1%20Output&output%20voltage=5%20V&package%20%2F%20case=SOT-89~~SOT-89-4%7C~SOT223-3%7C~SOT89-3&instock=y&rp=semiconductors%2Fpower-management-ics%2Fvoltage-regulators-voltage-controllers%2Fldo-voltage-regulators%7C~Package%20%2F%20Case%7C~Input%20Voltage%2C%20Max"
+		(exclude_from_sim no)
+		(at 220.726 5.08 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "2d314d82-ba6e-4746-9ce1-038edb4862da")
+	)
 	(text "Powa"
 		(exclude_from_sim no)
 		(at 162.814 27.686 0)
@@ -6355,6 +6365,16 @@
 			)
 		)
 		(uuid "8534c2f4-ed9b-4756-89af-33c82419ff68")
+	)
+	(text "https://www.ti.com/lit/ds/symlink/tlv709.pdf?ts=1792494302204"
+		(exclude_from_sim no)
+		(at 219.964 15.494 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "b6b6905a-dcc8-4fea-9371-5dcf5d02c7e7")
 	)
 	(text "A5"
 		(exclude_from_sim no)
