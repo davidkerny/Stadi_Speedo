@@ -50,6 +50,10 @@ v1.7	FIXED; Šetříme RAM
 	- texty ve flash (PROGMEM / F())
 	- trip bez floatu a dtostrf
 
+v1.8	Přidán RPM mode, který ukazuje jen RPM, když nečtem otáčky
+	úklid na displeji
+	TopRPM
+
 
 
 ______________________________________

@@ -9,13 +9,12 @@
 // ============================================================
 
 // Texty v PROGMEM = leží ve flash, ne v RAM.
-const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.7";
+const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.8";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
 //  RPM ve stovkách (50 = 5000 RPM, 70 = 7000 RPM.
-//  ODOmetr (v EEPROM) a TRIP (v RAM)
-//  MAX RPM ani MTH tady nejsou, bo na to kašlem.
+//  ODOmetr je v EEPROM. TRIP, TopRychlost a TopRPM v RAM.
 //
 // ============================================================
 
@@ -47,8 +46,8 @@ const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.7";
 // --- OLED init ---
 // POZOR: "_2_" místo "_F_" = page buffer (256 B). Kreslení MUSÍ být v firstPage()/nextPage().
 // Případně "_1_" (128 B, kreslí se na 8x).
-//U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
-U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
+U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
+//U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
 //U8G2_SSD1306_128X32_UNIVISION_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- SPEEDO snímač kola (INT0) ---
@@ -106,17 +105,19 @@ const unsigned long DISPLEJ_INTERVAL_MS = 100;
 // -- Ujetá vzdálenost --
 unsigned long odoMetry = 0;
 
-// TRIP a TOPSPEED + magic number leží v .noinit -> startup kód je při resetu
+// TRIP, TopRychlost a TopRPM + magic number leží v .noinit -> startup kód je při resetu
 // nenuluje. Při studeném startu v nich je náhodný obsah.
 unsigned long tripMetry __attribute__((section(".noinit")));
 unsigned long tripMagic __attribute__((section(".noinit")));
 unsigned int topRychlostKmh __attribute__((section(".noinit")));
+unsigned int topRpm __attribute__((section(".noinit")));
 
-// -- Aktuální rychlost --
+// -- Aktuální rychlost Speedo--
 unsigned int zobrazenaRychlostKmh = 0;
 
-// -- Aktuální otáčky --
+// -- Aktuální otáčky Tacho --
 unsigned int zobrazeneRpm = 0;
+bool rezimOtackomeru = false; // Režim otáčkoměru, pokud nečteme 
 
 // -- Kalman speedo --
 float kalman_x = 0;
@@ -179,7 +180,7 @@ long nactiNapetiVcc()
 #endif
 
 // ============================================================
-// 4) EEPROM a RAM - ukládání ODO, TRIP, MAXRPM
+// 4) EEPROM a RAM - ukládání ODO, TRIP, topRpm
 // ============================================================
 
 void nactiOdoZEEPROM()
@@ -523,6 +524,7 @@ void setup()
   if (studenyStart)
   { tripMetry = 0;
     topRychlostKmh = 0;
+    topRpm = 0;
     tripMagic = TRIP_MAGIC;
 
     zobrazUvodniLogo();     // logo jen při studeném startu
@@ -640,6 +642,9 @@ void zpracujNovyTachoPulzPokudExistuje()
 
   float vyhlazeneRpm = vyhladRpm(suroveRpm);
   zobrazeneRpm = (unsigned int)(vyhlazeneRpm + 0.5);
+
+  if (zobrazeneRpm > topRpm)
+  { topRpm = zobrazeneRpm; }
 }
 
 // ============================================================
@@ -738,14 +743,23 @@ const uint8_t IKONA_TOP[] PROGMEM = {
 void vykresliDashboard()
 {
   // --------------------------------------------------------
-  // VŠECHNY VÝPOČTY děláme PŘED kreslením. Kreslení v page
-  // bufferu se totiž opakuje (u "_2_" 4x), takže uvnitř smyčky
+  // 16.1) VÝPOČTY A LOGIKA REŽIMŮ (PŘED KRESLENÍM)
+  // --------------------------------------------------------
+  // Kreslení v page bufferu se opakuje (u "_2_" 4x), takže uvnitř smyčky
   // má být jen kreslení, nic jiného.
   // --------------------------------------------------------
 
   // Aplikace násobiče pro testovací účely
   unsigned int testRpm = zobrazeneRpm * TEST_MULTIPLIER;
   unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
+
+  // Hystereze a logika přepínání do Režimu Otáčkoměru (Rev Mode)
+  if (topRychlostKmh == 0 && testRpm > 0)
+  {rezimOtackomeru = true;}
+  else if (testRychlost == 0 && testRpm >= 3000)
+  {rezimOtackomeru = true;} 
+  else if (testRychlost > 0 || testRpm < 1500)
+  {rezimOtackomeru = false;}
 
   // RPM ve stovkách (8000 RPM = 80)
   unsigned int rpmStovky = testRpm / 100;
@@ -763,6 +777,63 @@ void vykresliDashboard()
   // KRESLENÍ
   // --------------------------------------------------------
   u8g2.firstPage(); do {
+
+    if (rezimOtackomeru)
+    {
+      // ====================================================
+      // LAYOUT A: REŽIM OTÁČKOMĚRU (Velké RPM)
+      // ====================================================
+      u8g2.setFont(u8g2_font_logisoso46_tn);
+      
+      unsigned int tiscice = testRpm / 1000;
+      unsigned int zbytekStovky = testRpm % 1000;
+
+      if (testRpm < 1000) 
+      {
+        if (testRpm < 10)       { u8g2.setCursor(43, 58); }
+        else if (testRpm < 100) { u8g2.setCursor(23, 58); }
+        else                    { u8g2.setCursor(3, 58); }
+        u8g2.print(testRpm);
+      }
+      else 
+      {
+        int startX = (tiscice >= 10) ? -15 : 0;
+        u8g2.setCursor(startX, 58);
+        u8g2.print(tiscice);
+
+        // Úzká mezera 3 px mezi tisíci a stovkami
+        int xKurzor = u8g2.getCursorX() + 3; 
+        u8g2.setCursor(xKurzor, 58);
+
+        if (zbytekStovky < 10)       { u8g2.print(F("00")); }
+        else if (zbytekStovky < 100) { u8g2.print('0'); }
+        u8g2.print(zbytekStovky);
+      }
+
+      u8g2.setFont(u8g2_font_6x10_tf);
+      u8g2.setCursor(0, 64);
+      u8g2.print(F("rpm"));
+
+      if (topRpm != 0)
+      {
+        char topRpmStr[12];
+        snprintf(topRpmStr, sizeof(topRpmStr), "MAX %u", topRpm * TEST_MULTIPLIER);
+        int sirkaMax = u8g2.getStrWidth(topRpmStr);
+        u8g2.setCursor(128 - sirkaMax, 12);
+        u8g2.print(topRpmStr);
+      }
+
+      if (tripMetry > 0)
+      {
+        u8g2.setCursor(128 - sirkaTripu, 64);
+        u8g2.print(tripText);
+      }
+    }
+    else
+    {
+      // ====================================================
+      // LAYOUT B: STANDARDNÍ RYCHLOMĚR
+      // ====================================================
 
 
     // ----------------------------------------------------
@@ -793,7 +864,7 @@ void vykresliDashboard()
     if (testRychlost == 0 && topRychlostKmh != 0)
     {
       if (testRpm == 0) { u8g2.drawXBMP(98, 17, 5, 7, IKONA_TOP); }  // (šipka nahoru; x,y,w,h)
-      else              { u8g2.drawXBMP(0, 10, 5, 8, IKONA_TOP); }
+      else              { u8g2.drawXBMP(0, 10, 5, 7, IKONA_TOP); }
 
       u8g2.setFont(u8g2_font_6x10_tf);
       if (testRpm == 0) { u8g2.setCursor(106, 24); }
@@ -817,18 +888,19 @@ void vykresliDashboard()
       u8g2.print(F("km/h"));
     }
 
-    // Při pomalé jízdě: popisek rpm a ODO
-    if (testRychlost <= 19)
+    // Při pomalé jízdě: popisek rpm a ODO km
+    if (testRychlost <= 9)
     {
       if (testRpm != 0)
       {
         u8g2.setCursor(103, 41);
         u8g2.print(F("rpm"));
       }
-
+      if (odoMetry >= 900)
+       {
       u8g2.setCursor(0, 64);
-      u8g2.print(odoMetry / 1000);
+      u8g2.print(odoMetry / 1000);}
     }
-  }
-  while (u8g2.nextPage());
+    }
+  }while (u8g2.nextPage());
 }
