@@ -1191,6 +1191,139 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "AERO_TestPoint:TestPoint_Pad_2mm"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.762)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "TP6"
+				(at 5.08 3.302 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Label"
+				(at 2.54 3.302 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "AERO_TestPoint:TestPoint_Pad_2.0mm"
+				(at 5.08 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 5.08 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "test point"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Label" "${Value}"
+				(at -2.54 3.302 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "test point tp"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Pin* Test*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "TestPoint_Pad_2mm_0_1"
+				(circle
+					(center 0 3.302)
+					(radius 0.762)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "TestPoint_Pad_2mm_1_1"
+				(pin passive line
+					(at 0 0 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Connector:Conn_01x02_Pin"
 			(pin_names
 				(offset 1.016)
@@ -7945,16 +8078,6 @@
 		)
 		(uuid "35b571a6-57d2-43ba-ab2e-09a0fa1e4149")
 	)
-	(text "D0"
-		(exclude_from_sim no)
-		(at 68.072 91.948 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "389ba274-33d5-4c68-a699-b03ce8a60107")
-	)
 	(text "D2\n"
 		(exclude_from_sim no)
 		(at 68.072 97.028 0)
@@ -8025,16 +8148,6 @@
 			)
 		)
 		(uuid "7975f014-1e67-470f-8a55-158856f5043d")
-	)
-	(text "D1\n"
-		(exclude_from_sim no)
-		(at 68.072 94.488 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "822fec5f-6e1b-4860-b75c-3618a98ac5f7")
 	)
 	(text "D3\n"
 		(exclude_from_sim no)
@@ -8296,6 +8409,12 @@
 		(uuid "6a7df391-2bce-48f3-95bc-ebb48a07806b")
 	)
 	(junction
+		(at 58.42 25.4)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6de8906e-6157-4803-8675-4a77f10d61e5")
+	)
+	(junction
 		(at 254 149.86)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -8368,12 +8487,6 @@
 		(uuid "9ad2a55f-bba6-4637-b0fe-8ebe4039ab8e")
 	)
 	(junction
-		(at 184.15 45.72)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9b2c8096-70c1-490e-88b3-ef719805f8f5")
-	)
-	(junction
 		(at 82.55 256.54)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -8384,6 +8497,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a26a1c12-23fc-4f81-85f1-eda931ad01fa")
+	)
+	(junction
+		(at 255.27 43.18)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "aaf46717-4415-48f9-920f-320694fcc4a2")
 	)
 	(junction
 		(at 223.52 129.54)
@@ -8544,16 +8663,8 @@
 		(uuid "9600d3b8-0af1-4700-b06d-6e7261d66413")
 	)
 	(no_connect
-		(at 58.42 77.47)
-		(uuid "a8ae38fe-1371-400e-a4ca-0871342f4379")
-	)
-	(no_connect
 		(at 58.42 52.07)
 		(uuid "b11d9224-7727-4e75-8730-0f259bfbc97d")
-	)
-	(no_connect
-		(at 58.42 80.01)
-		(uuid "b898aa26-ed84-41ab-88f0-4158b0ed9c3d")
 	)
 	(no_connect
 		(at 241.3 237.49)
@@ -8707,13 +8818,23 @@
 	)
 	(wire
 		(pts
-			(xy 257.81 49.53) (xy 257.81 50.8)
+			(xy 255.27 53.34) (xy 255.27 54.61)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "0c23ec83-fd89-4cbf-b864-ddcd139ce036")
+	)
+	(wire
+		(pts
+			(xy 73.66 25.4) (xy 73.66 29.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0d04dd30-513d-4e42-a8d5-0fbab1f44670")
 	)
 	(wire
 		(pts
@@ -8737,7 +8858,7 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 45.72) (xy 184.15 45.72)
+			(xy 173.99 45.72) (xy 193.04 45.72)
 		)
 		(stroke
 			(width 0)
@@ -8824,6 +8945,16 @@
 			(type default)
 		)
 		(uuid "1618d352-0c0c-4052-ab8b-fc51c54bb533")
+	)
+	(wire
+		(pts
+			(xy 58.42 80.01) (xy 92.71 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "164cc08a-8d86-4065-b661-7e52caafd6ec")
 	)
 	(wire
 		(pts
@@ -9407,6 +9538,16 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 25.4) (xy 73.66 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "54d662f7-17b5-4900-8cfc-9a8e68d15f14")
+	)
+	(wire
+		(pts
 			(xy 113.03 97.79) (xy 115.57 97.79)
 		)
 		(stroke
@@ -9497,7 +9638,7 @@
 	)
 	(wire
 		(pts
-			(xy 257.81 43.18) (xy 257.81 44.45)
+			(xy 255.27 43.18) (xy 255.27 48.26)
 		)
 		(stroke
 			(width 0)
@@ -9554,6 +9695,16 @@
 			(type default)
 		)
 		(uuid "5c2443f7-f2ca-471a-a804-d8e2b244ddbd")
+	)
+	(wire
+		(pts
+			(xy 58.42 77.47) (xy 78.74 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5dd759e9-f407-4e39-b323-49d2e12e1754")
 	)
 	(wire
 		(pts
@@ -9644,6 +9795,16 @@
 			(type default)
 		)
 		(uuid "60ab45bc-802a-467f-9c45-f66686c05942")
+	)
+	(wire
+		(pts
+			(xy 78.74 77.47) (xy 78.74 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "60d54e6d-0951-4566-90b4-2a3eeeb8818c")
 	)
 	(wire
 		(pts
@@ -9887,6 +10048,16 @@
 	)
 	(wire
 		(pts
+			(xy 99.06 49.53) (xy 99.06 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "729a49a0-3769-4ea9-81fe-efee2d71f3a4")
+	)
+	(wire
+		(pts
 			(xy 254 83.82) (xy 242.57 83.82)
 		)
 		(stroke
@@ -9914,16 +10085,6 @@
 			(type default)
 		)
 		(uuid "73ac2975-9c1d-4bbd-adf7-c114f07d962d")
-	)
-	(wire
-		(pts
-			(xy 184.15 45.72) (xy 193.04 45.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7757c2d1-47de-4d3e-8ebc-d5b63b49940f")
 	)
 	(wire
 		(pts
@@ -10127,6 +10288,16 @@
 	)
 	(wire
 		(pts
+			(xy 255.27 43.18) (xy 257.81 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c2c0cf8-a949-49f3-ac76-0de4a792db29")
+	)
+	(wire
+		(pts
 			(xy 43.18 25.4) (xy 34.29 25.4)
 		)
 		(stroke
@@ -10174,6 +10345,16 @@
 			(type default)
 		)
 		(uuid "911a23a4-d8bb-493d-a947-cd86e5cbd38a")
+	)
+	(wire
+		(pts
+			(xy 83.82 49.53) (xy 83.82 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "913b418f-c470-40b9-8d78-7e6f55ec500b")
 	)
 	(wire
 		(pts
@@ -10567,16 +10748,6 @@
 	)
 	(wire
 		(pts
-			(xy 184.15 50.8) (xy 184.15 45.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b86ce063-3c70-4e84-af28-4c98432cd161")
-	)
-	(wire
-		(pts
 			(xy 254 123.19) (xy 254 124.46)
 		)
 		(stroke
@@ -10657,7 +10828,7 @@
 	)
 	(wire
 		(pts
-			(xy 246.38 43.18) (xy 257.81 43.18)
+			(xy 246.38 43.18) (xy 255.27 43.18)
 		)
 		(stroke
 			(width 0)
@@ -10807,6 +10978,16 @@
 	)
 	(wire
 		(pts
+			(xy 73.66 34.29) (xy 73.66 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d07cff44-1cbe-48ce-99e8-b48bbbae3c61")
+	)
+	(wire
+		(pts
 			(xy 224.79 88.9) (xy 232.41 88.9)
 		)
 		(stroke
@@ -10824,6 +11005,16 @@
 			(type default)
 		)
 		(uuid "d194701a-3c8b-4283-aa1f-a99fc4abc6ec")
+	)
+	(wire
+		(pts
+			(xy 92.71 80.01) (xy 92.71 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d1db4691-ae8f-4967-af09-24dbfd319f22")
 	)
 	(wire
 		(pts
@@ -11044,6 +11235,16 @@
 			(type default)
 		)
 		(uuid "e3c342a7-b0f2-47df-8fc9-30992e2b431f")
+	)
+	(wire
+		(pts
+			(xy 247.65 27.94) (xy 247.65 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e4056320-af95-400f-af79-69af688acada")
 	)
 	(wire
 		(pts
@@ -11445,6 +11646,16 @@
 		)
 		(uuid "0d7d2759-7cb1-4c83-ab07-83722eeff317")
 	)
+	(label "PD1"
+		(at 99.06 49.53 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "144b5c8c-db5f-4269-8456-b1bb5fae9a34")
+	)
 	(label "OLED SDA"
 		(at 240.03 123.19 0)
 		(effects
@@ -11735,6 +11946,16 @@
 		)
 		(uuid "85dc4f42-d24f-4383-bae6-a9596aaf7783")
 	)
+	(label "sw"
+		(at 232.41 35.56 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8811d275-38b9-470d-abda-9991eed647dc")
+	)
 	(label "VBUS"
 		(at 97.79 177.8 0)
 		(effects
@@ -11895,6 +12116,16 @@
 		)
 		(uuid "b6267d99-900d-4ee4-a29d-ba33bd2a395f")
 	)
+	(label "PD0"
+		(at 64.77 92.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b63d6be6-b0dc-4a7c-9c22-d64ee059dfd1")
+	)
 	(label "BS1"
 		(at 250.19 101.6 0)
 		(effects
@@ -11974,6 +12205,16 @@
 			(justify left bottom)
 		)
 		(uuid "cf274e7b-0bf3-4bb7-9214-a7537938bf2a")
+	)
+	(label "PD0"
+		(at 83.82 49.53 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d17cb8f5-9eaa-43a1-a394-c6bdf759dbe4")
 	)
 	(label "D5"
 		(at 66.04 105.41 0)
@@ -12064,6 +12305,16 @@
 			(justify left bottom)
 		)
 		(uuid "fac69ff7-ddfd-4134-96eb-8322502e3f62")
+	)
+	(label "PD1"
+		(at 64.77 95.25 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ffa935b7-9877-43b9-becb-559539e2e169")
 	)
 	(symbol
 		(lib_id "Device:C_Small")
@@ -13264,6 +13515,84 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 73.66 35.56 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0eb20347-ca0e-4864-a49b-c3369793d3aa")
+		(property "Reference" "#PWR078"
+			(at 73.66 41.91 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 73.66 40.64 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 73.66 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 73.66 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 73.66 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ca1856f3-6e54-4afc-827d-f2c88c2b0481")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "#PWR078")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 193.04 57.15 0)
 		(unit 1)
 		(body_style 1)
@@ -13575,84 +13904,6 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "Q2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 184.15 55.88 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "142243ec-91f4-4c00-9ab6-e4a14bba483c")
-		(property "Reference" "#PWR075"
-			(at 184.15 62.23 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 184.15 60.96 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 184.15 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 184.15 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 184.15 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "55745d3c-25aa-4527-9966-e4f6772e086e")
-		)
-		(instances
-			(project "Stadi_Speedo_V2"
-				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
-					(reference "#PWR075")
 					(unit 1)
 				)
 			)
@@ -14133,6 +14384,96 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "AERO_TestPoint:TestPoint_Pad_2mm")
+		(at 83.82 43.18 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1bc9bcc4-e15e-4504-a400-a1fd570c867e")
+		(property "Reference" "TP5"
+			(at 86.36 37.3379 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Label"
+			(at 86.36 39.8779 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.0mm"
+			(at 88.9 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 88.9 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "test point"
+			(at 83.82 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Label" "PD0"
+			(at 86.36 42.4179 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "f431093f-3b12-403d-9323-3eb7d8f62848")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "TP5")
 					(unit 1)
 				)
 			)
@@ -14764,6 +15105,96 @@
 		)
 	)
 	(symbol
+		(lib_id "AERO_TestPoint:TestPoint_Pad_2mm")
+		(at 92.71 74.93 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "25225f84-400a-4a45-a54c-487181ab3d5b")
+		(property "Reference" "TP3"
+			(at 96.52 69.0879 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Label"
+			(at 96.52 71.6279 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 97.79 74.93 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 97.79 74.93 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "test point"
+			(at 92.71 74.93 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Label" "${Value}"
+			(at 96.52 74.1679 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "ef53c709-fed2-45e6-a197-088a38a52d09")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "TP3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 246.38 63.5 0)
 		(unit 1)
@@ -15102,7 +15533,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 257.81 50.8 0)
+		(at 255.27 54.61 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -15113,7 +15544,7 @@
 		(fields_autoplaced yes)
 		(uuid "2bfc4553-42e8-4ef9-9675-78efa93a0faf")
 		(property "Reference" "#PWR015"
-			(at 257.81 57.15 0)
+			(at 255.27 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15124,7 +15555,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 257.81 55.88 0)
+			(at 255.27 59.69 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15134,7 +15565,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 257.81 50.8 0)
+			(at 255.27 54.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15145,7 +15576,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 257.81 50.8 0)
+			(at 255.27 54.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15156,7 +15587,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 257.81 50.8 0)
+			(at 255.27 54.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15683,98 +16114,6 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "Y1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C_Small")
-		(at 184.15 53.34 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "36462e9b-168d-4f16-8033-8c50b95a92c0")
-		(property "Reference" "C35"
-			(at 185.928 52.324 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "100n"
-			(at 186.182 54.102 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 184.15 53.34 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 184.15 53.34 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 184.15 53.34 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "JLCPCB Part" ""
-			(at 184.15 53.34 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "723217bf-c55f-4d48-bff2-88ad27bc8f3c")
-		)
-		(pin "2"
-			(uuid "64016c58-9e06-47fe-b9f6-e7be4fb95149")
-		)
-		(instances
-			(project "Stadi_Speedo_V2"
-				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
-					(reference "C35")
 					(unit 1)
 				)
 			)
@@ -18943,7 +19282,7 @@
 		(body_style 1)
 		(exclude_from_sim no)
 		(in_bom yes)
-		(on_board no)
+		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "69b7a3e1-2fe8-4b68-9bea-1bba3641a69a")
@@ -19198,7 +19537,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 257.81 46.99 0)
+		(at 247.65 25.4 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -19208,7 +19547,7 @@
 		(dnp no)
 		(uuid "6e8f62a6-69d5-4f1b-8fae-9437c3389bb1")
 		(property "Reference" "C6"
-			(at 253.238 46.482 0)
+			(at 243.078 24.892 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19219,7 +19558,7 @@
 			)
 		)
 		(property "Value" "1u"
-			(at 253.492 48.006 0)
+			(at 243.332 26.416 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19230,7 +19569,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 257.81 46.99 0)
+			(at 247.65 25.4 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19241,7 +19580,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 257.81 46.99 0)
+			(at 247.65 25.4 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19252,7 +19591,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 257.81 46.99 0)
+			(at 247.65 25.4 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19263,7 +19602,7 @@
 			)
 		)
 		(property "JLCPCB Part" ""
-			(at 257.81 46.99 0)
+			(at 247.65 25.4 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19555,7 +19894,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "AERO_Capacitor_SMD:C_0603-1206_universal_Pad1.18x1.45mm"
 			(at 173.99 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -20507,7 +20846,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_Pulse_PA4332"
+		(property "Footprint" "AERO_Capacitor_SMD:C_0603-1206_universal_Pad1.18x1.45mm"
 			(at 167.64 47.498 90)
 			(hide yes)
 			(show_name no)
@@ -21329,7 +21668,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_Pulse_PA4332"
+		(property "Footprint" "AERO_Capacitor_SMD:C_0603-1206_universal_Pad1.33x1.80mm_HandSolder"
 			(at 91.948 185.42 90)
 			(hide yes)
 			(show_name no)
@@ -21506,6 +21845,99 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "R19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Polarized_Small")
+		(at 73.66 31.75 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "938a4b07-59f8-4cbd-979c-3029d7cad9ab")
+		(property "Reference" "C37"
+			(at 76.2 29.9338 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4u7_16V"
+			(at 76.2 32.4738 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-3216-10_Kemet-I"
+			(at 73.66 31.75 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 73.66 31.75 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Polarized capacitor, small symbol"
+			(at 73.66 31.75 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "JLCPCB Part" ""
+			(at 73.66 31.75 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e0ee64f4-fd2c-40c2-96ae-93ebf7c02d83")
+		)
+		(pin "2"
+			(uuid "c40a9158-1af9-4832-ba50-a20b70d5cb35")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "C37")
 					(unit 1)
 				)
 			)
@@ -23606,7 +24038,7 @@
 		(body_style 1)
 		(exclude_from_sim no)
 		(in_bom yes)
-		(on_board no)
+		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c0cdbfa9-1d66-4047-af0e-398e9ef7f50d")
@@ -24539,6 +24971,96 @@
 		)
 	)
 	(symbol
+		(lib_id "AERO_TestPoint:TestPoint_Pad_2mm")
+		(at 78.74 74.93 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d2b8a3a3-006e-4ce3-9166-df86c1dcac00")
+		(property "Reference" "TP4"
+			(at 81.28 69.0879 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Label"
+			(at 81.28 71.6279 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 83.82 74.93 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 83.82 74.93 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "test point"
+			(at 78.74 74.93 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Label" "PC2"
+			(at 81.28 74.1679 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "4c753631-7f05-4966-b738-fdc877a275eb")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "TP4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 34.29 228.6 0)
 		(unit 1)
@@ -24647,7 +25169,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-123F"
+		(property "Footprint" "AERO_Diode_SMD:D_SOD-123FL"
 			(at 210.82 26.67 90)
 			(hide yes)
 			(show_name no)
@@ -24881,6 +25403,174 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "L1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "AERO_TestPoint:TestPoint_Pad_2mm")
+		(at 99.06 43.18 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d866a598-66f4-47b3-b5b2-f6adfab346c6")
+		(property "Reference" "TP6"
+			(at 102.87 37.3379 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Label"
+			(at 102.87 39.8779 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.0mm"
+			(at 104.14 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 104.14 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "test point"
+			(at 99.06 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Label" "${Value}"
+			(at 102.87 42.4179 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "ea7b6d5c-b5f6-4a21-8584-af8b4f34089d")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "TP6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 247.65 22.86 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "df26dfc1-6bf0-498e-9451-52f69cd5ca39")
+		(property "Reference" "#PWR075"
+			(at 247.65 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 247.65 17.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 247.65 22.86 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 247.65 22.86 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 247.65 22.86 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "593921ce-026c-4144-b0d3-db157c91a190")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "#PWR075")
 					(unit 1)
 				)
 			)
@@ -25346,6 +26036,99 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Polarized_Small")
+		(at 255.27 50.8 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e9fa0637-4a67-4d4a-b2c6-061c4b01cc6a")
+		(property "Reference" "C35"
+			(at 257.81 48.9838 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4u7_16V"
+			(at 257.81 51.5238 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "AERO_Capacitor_SMD:C_0603-1206_universal_Pad1.18x1.45mm"
+			(at 255.27 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 255.27 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Polarized capacitor, small symbol"
+			(at 255.27 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "JLCPCB Part" ""
+			(at 255.27 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e6d4a872-7fa6-48c8-b8dd-c849fb5b2fd5")
+		)
+		(pin "2"
+			(uuid "796e6a67-1e4f-45eb-8eaa-f1481333e41c")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "C35")
 					(unit 1)
 				)
 			)
@@ -25866,7 +26649,7 @@
 		(body_style 1)
 		(exclude_from_sim no)
 		(in_bom yes)
-		(on_board no)
+		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f025009c-4eca-4cd3-99d8-dd0497b501c0")
@@ -26382,6 +27165,84 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "#PWR06")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 247.65 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f8e61629-0a09-43a1-acf7-2d94ba29a85f")
+		(property "Reference" "#PWR077"
+			(at 247.65 36.83 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 247.65 35.56 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 247.65 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 247.65 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 247.65 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6b34c3b7-4538-4997-a910-f2c909dc07f2")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "#PWR077")
 					(unit 1)
 				)
 			)
