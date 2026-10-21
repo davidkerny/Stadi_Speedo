@@ -9,7 +9,7 @@
 // ============================================================
 
 // Texty v PROGMEM = leží ve flash, ne v RAM.
-const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.8";
+const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.85";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -26,8 +26,8 @@ const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.8";
 // 6) PŘERUŠENÍ - TACHO
 // 7) FILTR SPEEDA
 // 8) FILTR TACHA
-// 8b) HEARTBEAT LED (diagnostika, D13)
-// 9) ÚVODNÍ LOGO
+// 9A) HEARTBEAT LED (diagnostika, D13)
+// 9B) ÚVODNÍ LOGO
 // 10) HLAVNÍ SMYČKA - SETUP
 // 11) ZPRACOVÁNÍ SPEEDA
 // 12) ZPRACOVÁNÍ TACHA
@@ -35,6 +35,10 @@ const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.8";
 // 14) KONTROLA ZASTAVENÍ TACHA
 // 15) LOOP
 // 16) DISPLEJ
+//  16.1) VÝPOČTY A LOGIKA REŽIMŮ (PŘED KRESLENÍM)
+//  16.2) KRESLENÍ
+//  16.4) LAYOUT B: SPÍDO
+//  16.3) LAYOUT A: TACHO aka RevMode
 
 // ============================================================
 // 1) NASTAVENÍ
@@ -46,8 +50,8 @@ const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.8";
 // --- OLED init ---
 // POZOR: "_2_" místo "_F_" = page buffer (256 B). Kreslení MUSÍ být v firstPage()/nextPage().
 // Případně "_1_" (128 B, kreslí se na 8x).
-U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
-//U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
+//U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
+U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
 //U8G2_SSD1306_128X32_UNIVISION_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- SPEEDO snímač kola (INT0) ---
@@ -117,7 +121,7 @@ unsigned int zobrazenaRychlostKmh = 0;
 
 // -- Aktuální otáčky Tacho --
 unsigned int zobrazeneRpm = 0;
-bool rezimOtackomeru = false; // Režim otáčkoměru, pokud nečteme 
+bool rezimOtackomeru = false; // Režim otáčkoměru na začátku vypnutý
 
 // -- Kalman speedo --
 float kalman_x = 0;
@@ -223,89 +227,65 @@ const unsigned long TRIP_MAGIC = 0xA5C3F00DUL;  // platná RAM = pokračuj, jina
 // ============================================================
 
 void snimacSpeedoPreruseni()
-{
-  unsigned long ted = micros();
+{ unsigned long ted = micros();
 
   if (speedoIsrCasPoslednihoPulzuUs == 0)
-  {
-    speedoIsrCasPoslednihoPulzuUs = ted;
-    return;
-  }
+  { speedoIsrCasPoslednihoPulzuUs = ted;
+    return;}
 
   unsigned long interval = ted - speedoIsrCasPoslednihoPulzuUs;
 
-  // Kratší pulzy zahazujem rovnou v ISR jako rušení.
+    // Kratší pulzy zahazujem rovnou v ISR jako rušení.
   if (interval < MIN_MEZERA_PULZU_US)
-  {
-    return;
-  }
+  {    return;}
 
   speedoIsrDelkaPoslednihoIntervaluUs = interval;
   speedoIsrCasPoslednihoPulzuUs = ted;
-  speedoIsrMameNovyPulz = true;
-}
+  speedoIsrMameNovyPulz = true;}
 
 // ============================================================
 // 6) PŘERUŠENÍ - TACHO
 // ============================================================
 
 void snimacTachoPreruseni()
-{
-  unsigned long ted = micros();
-
+{ unsigned long ted = micros();
   if (tachoIsrCasPoslednihoPulzuUs == 0)
-  {
-    tachoIsrCasPoslednihoPulzuUs = ted;
-    return;
-  }
-
+  { tachoIsrCasPoslednihoPulzuUs = ted;
+    return;}
   unsigned long interval = ted - tachoIsrCasPoslednihoPulzuUs;
 
-  // Bordel od zapalování - pokud je pulz moc brzo, ignorujem ho.
+    // Bordel od zapalování - pokud je pulz moc brzo, ignorujem ho.
   if (interval < MIN_MEZERA_TACHO_US)
-  {
-    return;
-  }
+  { return;}
 
   tachoIsrDelkaPoslednihoIntervaluUs = interval;
   tachoIsrCasPoslednihoPulzuUs = ted;
-  tachoIsrMameNovyPulz = true;
-}
+  tachoIsrMameNovyPulz = true;}
 
 // ============================================================
 // 7) FILTR SPEEDA
 // ============================================================
 
 float vyhladRychlost(float noveMereniKmh)
-{
-  kalman_p = kalman_p + KALMAN_Q;
-
+{ kalman_p = kalman_p + KALMAN_Q;
   float zisk = kalman_p / (kalman_p + KALMAN_R);
-
   kalman_x = kalman_x + zisk * (noveMereniKmh - kalman_x);
   kalman_p = (1.0 - zisk) * kalman_p;
-
-  return kalman_x;
-}
+  return kalman_x;}
 
 // "ted" je čas (z micros()) tohodle pulzu - potřeba pro
 // fyzikální kontrolu rychlosti změny.
 bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh, unsigned long ted)
-{
-  bool vysledek = true;
+{ bool vysledek = true;
 
   if (surovaRychlostKmh > MAX_ROZUMNA_RYCHLOST_KMH)
-  {
-    vysledek = false;
-  }
+  { vysledek = false;}
 
   if (vysledek && jsmeVPohybu)
-  {
-    float rozdilOdVyhlazene = fabs(surovaRychlostKmh - kalman_x);
+  { float rozdilOdVyhlazene = fabs(surovaRychlostKmh - kalman_x);
 
     if (rozdilOdVyhlazene > MAX_SKOK_KMH)
-    {
-      bool souhlasiSPredchozim =
+    { bool souhlasiSPredchozim =
         mamePredchoziPulz &&
         fabs(surovaRychlostKmh - posledniSurovaRychlostKmh)
           < MAX_ROZDIL_SOUSEDNICH_PULZU_KMH;
@@ -321,20 +301,11 @@ bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh, unsigned long ted)
         uplynuleSekundy > 0 &&
         (rozdilOdVyhlazene / uplynuleSekundy) <= MAX_ZMENA_RYCHLOSTI_KMH_ZA_S;
 
-      if (souhlasiSPredchozim && jeZmenaFyzikalneMozna)
-      {
-        // Dva pulzy za sebou si sedí a je to fyzikálně možné
-        // -> reálné zrychlení.
-        kalman_x = surovaRychlostKmh;
-        kalman_p = 1.0;
-      }
-      else
-      {
-        vysledek = false;
-      }
-    }
-  }
-
+      if (souhlasiSPredchozim && jeZmenaFyzikalneMozna) // Dva pulzy si sedí a je to možné -> reálné zrychlení.
+      { kalman_x = surovaRychlostKmh; 
+        kalman_p = 1.0; }
+      else { vysledek = false; }
+    }}
   return vysledek;
 }
 
@@ -343,70 +314,44 @@ bool jePulzSpeedaDuveryhodny(float surovaRychlostKmh, unsigned long ted)
 // ============================================================
 
 float vyhladRpm(float noveMereniRpm)
-{
-  tachoKalman_p = tachoKalman_p + TACHO_KALMAN_Q;
-
-  float zisk =
-    tachoKalman_p / (tachoKalman_p + TACHO_KALMAN_R);
-
-  tachoKalman_x =
-    tachoKalman_x +
-    zisk * (noveMereniRpm - tachoKalman_x);
-
-  tachoKalman_p =
-    (1.0 - zisk) * tachoKalman_p;
-
+{ tachoKalman_p = tachoKalman_p + TACHO_KALMAN_Q;
+  float zisk = tachoKalman_p / (tachoKalman_p + TACHO_KALMAN_R);
+  tachoKalman_x = tachoKalman_x + zisk * (noveMereniRpm - tachoKalman_x);
+  tachoKalman_p = (1.0 - zisk) * tachoKalman_p;
   return tachoKalman_x;
 }
 
 bool jePulzTachaDuveryhodny(float suroveRpm)
-{
-  if (suroveRpm > MAX_ROZUMNE_RPM ||
+{ if (suroveRpm > MAX_ROZUMNE_RPM ||
       suroveRpm < MIN_ROZUMNE_RPM)
-  {
-    return false;
-  }
+  { return false;}
 
   if (motorBezi)
-  {
-    float rozdil = fabs(suroveRpm - tachoKalman_x);
+  { float rozdil = fabs(suroveRpm - tachoKalman_x);
 
     if (rozdil > MAX_SKOK_RPM)
-    {
-      bool souhlasiSPredchozim =
+    { bool souhlasiSPredchozim =
         tachoMamePredchoziPulz &&
         fabs(suroveRpm - posledniSuroveRpm)
           < MAX_ROZDIL_SOUSEDNICH_PULZU_RPM;
 
-      if (souhlasiSPredchozim)
-      {
-        // Dva pulzy po sobě sedí -> motor fakt změnil otáčky.
-        tachoKalman_x = suroveRpm;
+      if (souhlasiSPredchozim) // Dva pulzy po sobě sedí -> motor fakt změnil otáčky.
+      { tachoKalman_x = suroveRpm;
         tachoKalman_p = 1.0;
-      }
-      else
-      {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
+      } else { return false;}
+    }}
+  return true;}
 
 
 // ============================================================
-// 8b) HEARTBEAT LED (diagnostika, D13)
+// 9A) HEARTBEAT LED (diagnostické blikání LED D13)
 // ============================================================
 
-// Timer2 v CTC módu, prescaler 1024 -> jeden "tik" cca 16 ms.
-// V ISR čekáme 16 tiků (~256 ms), než LED přepneme - vznikne
-// viditelné, pomalé blikání (~2 Hz). Běží nezávisle na loop().
+// Timer2 -> jeden "tik" cca 16 ms.
+// V ISR čeká 16 tiků (~256 ms), než LED přepne. Běží nezávisle na loop().
 
 void nastavHeartbeatTimer()
-{
-  pinMode(13, OUTPUT);
-
+{ pinMode(13, OUTPUT);
   TCCR2A = (1 << WGM21);                              // CTC mód
   TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);   // prescaler 1024
   OCR2A = 249;                                         // perioda ~16 ms
@@ -414,23 +359,18 @@ void nastavHeartbeatTimer()
 }
 
 ISR(TIMER2_COMPA_vect)
-{
-  heartbeatPocitadloPreruseni++;
-
+{ heartbeatPocitadloPreruseni++;
   if (heartbeatPocitadloPreruseni >= 16)   // ~16 x 16 ms ≈ 256 ms
-  {
-    heartbeatPocitadloPreruseni = 0;
-    digitalWrite(13, !digitalRead(13));
-  }
+  { heartbeatPocitadloPreruseni = 0;
+    digitalWrite(13, !digitalRead(13));  }
 }
 
 // ============================================================
-// 9) ÚVODNÍ LOGO
+// 9B) ÚVODNÍ LOGO
 // ============================================================
 
 void zobrazUvodniLogo()
-{
-  pinMode(LED_BUILTIN, OUTPUT);
+{ pinMode(13, OUTPUT);
 
   const int VYSKA_OBLASTI_LOGA = 50;
   int x = (128 - STADION_WIDTH) / 2;
@@ -439,27 +379,20 @@ void zobrazUvodniLogo()
   // Page buffer: kreslení se opakuje pro každou část displeje.
   u8g2.firstPage();
   do
-  {
-    u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
-
+  { u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
     u8g2.setFont(u8g2_font_5x7_tf);
     u8g2.setCursor(0, 64);
-    u8g2.print((__FlashStringHelper*)FW_VERZE);
-  }
+    u8g2.print((__FlashStringHelper*)FW_VERZE); }
   while (u8g2.nextPage());
-
-  pinMode(13, OUTPUT);
 
   const unsigned long krokMs =
     LOGO_DOBA_ZOBRAZENI_MS / (LOGO_POCET_BLIKNUTI * 2);
 
   for (byte i = 0; i < LOGO_POCET_BLIKNUTI; i++)
-  {
-    digitalWrite(13, HIGH);
+  { digitalWrite(13, HIGH);
     delay(krokMs);
     digitalWrite(13, LOW);
-    delay(krokMs);
-  }
+    delay(krokMs); }
 }
 
 // ============================================================
@@ -467,14 +400,14 @@ void zobrazUvodniLogo()
 // ============================================================
 
 void setup()
-{
-  // Po resetu watchdogem by mohl zůstat běžet s krátkým limitem.
+
+{ // Po resetu watchdogem by mohl zůstat běžet s krátkým limitem.
   MCUSR = 0;
   wdt_disable();
   wdt_enable(WDTO_8S);
 
   // === I2C BUS CLEAR ===
-  // zvon na hajzl pro I2C. aka defibrilátor.
+  // zvon na hajzl pro I2C. aka defibrilátor = kurva důležité.
 
   pinMode(SDA, INPUT_PULLUP);
   pinMode(SCL, INPUT_PULLUP);
@@ -553,8 +486,7 @@ void setup()
 // ============================================================
 
 void zpracujNovySpeedoPulzPokudExistuje()
-{
-  if (!speedoIsrMameNovyPulz)
+{ if (!speedoIsrMameNovyPulz)
   { return; }
 
   unsigned long intervalUs;
@@ -735,7 +667,7 @@ void loop()
 // ============================================================
 
 
-// Ikonka top speed 5x7: (šipka nahoru)
+// Ikonka TOP 5x7: (šipka nahoru)
 const uint8_t IKONA_TOP[] PROGMEM = {
   0xff, 0xe4, 0xee, 0xff, 0xe4, 0xe4, 0xe4
 };
@@ -754,102 +686,98 @@ void vykresliDashboard()
   unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
 
   // Hystereze a logika přepínání do Režimu Otáčkoměru (Rev Mode)
-  if (topRychlostKmh == 0 && testRpm > 0)
+  if (odoMetry < 100 && testRpm > 0)     // kdyz ma budik najeto 0km, ukazujem tacho.
   {rezimOtackomeru = true;}
-  else if (testRychlost == 0 && testRpm >= 3000)
+  else if (topRychlostKmh == 0 && testRpm > 0)   // túrujem na místě ale ještě jsme nevyjeli: budík je tacho
+  {rezimOtackomeru = true;}
+  else if (testRychlost == 0 && testRpm >= 5000)  // tůrujem po jízdě, ukazujem tacho.
   {rezimOtackomeru = true;} 
-  else if (testRychlost > 0 || testRpm < 1500)
+  else if (testRychlost > 0 || testRpm < 2400)  // dotůrovali jsme.
   {rezimOtackomeru = false;}
 
   // RPM ve stovkách (8000 RPM = 80)
   unsigned int rpmStovky = testRpm / 100;
 
-  // TRIP "t 12.3" - bez floatu: celé desetiny km, pak rozdělíme na celé a desetinu
+  // TRIP KM celé+desetiny (2.3km)- příprava proměnných pro celý scope
+  char tripText[16] = "";
+  int sirkaTripu = 0;
+  if (tripMetry > 0){
   unsigned long tripDesetiny = tripMetry / 100UL;
-  char tripText[16];
-  snprintf(tripText, sizeof(tripText), "t %lu.%lu", tripDesetiny / 10, tripDesetiny % 10);
-
+  snprintf(tripText, sizeof(tripText), "t %lu.%lu", tripDesetiny / 10, tripDesetiny % 10);}
+  
   // Šířka pro zarovnání doprava (font musí být nastavený před getStrWidth)
   u8g2.setFont(u8g2_font_6x10_tf);
-  int sirkaTripu = u8g2.getStrWidth(tripText);
+  sirkaTripu = u8g2.getStrWidth(tripText);
 
   // --------------------------------------------------------
-  // KRESLENÍ
+  // 16.2) KRESLENÍ
   // --------------------------------------------------------
+  
   u8g2.firstPage(); do {
-
     if (rezimOtackomeru)
     {
       // ====================================================
-      // LAYOUT A: REŽIM OTÁČKOMĚRU (Velké RPM)
+      // 16.3) TACHO aka RevMode
       // ====================================================
-      u8g2.setFont(u8g2_font_logisoso46_tn);
-      
-      unsigned int tiscice = testRpm / 1000;
-      unsigned int zbytekStovky = testRpm % 1000;
+     
+      u8g2.setFont(u8g2_font_logisoso42_tn);
+      unsigned int tisiceRpm = testRpm / 1000;
+      unsigned int stovkyZbytekRpm = testRpm % 1000;
 
       if (testRpm < 1000) 
-      {
-        if (testRpm < 10)       { u8g2.setCursor(43, 58); }
-        else if (testRpm < 100) { u8g2.setCursor(23, 58); }
-        else                    { u8g2.setCursor(3, 58); }
-        u8g2.print(testRpm);
-      }
-      else 
-      {
-        int startX = (tiscice >= 10) ? -15 : 0;
-        u8g2.setCursor(startX, 58);
-        u8g2.print(tiscice);
-
-        // Úzká mezera 3 px mezi tisíci a stovkami
-        int xKurzor = u8g2.getCursorX() + 3; 
-        u8g2.setCursor(xKurzor, 58);
-
-        if (zbytekStovky < 10)       { u8g2.print(F("00")); }
-        else if (zbytekStovky < 100) { u8g2.print('0'); }
-        u8g2.print(zbytekStovky);
+      { if (testRpm < 10)       { u8g2.setCursor(50, 45); }
+        else if (testRpm < 100) { u8g2.setCursor(33, 45); }
+        else                    { u8g2.setCursor(20, 45); }
+        u8g2.print(testRpm);}
+      else {
+        int RpmStartX = (tisiceRpm >= 10) ? -14 : 0;
+        u8g2.setCursor(RpmStartX, 45);
+        u8g2.print(tisiceRpm);
+        // Mezera 10px mezi tisíci a stovkami
+        int xKurzor = u8g2.getCursorX() + 10; 
+        u8g2.setCursor(xKurzor, 45);
+        if (stovkyZbytekRpm < 10)       { u8g2.print(F("00")); }
+        else if (stovkyZbytekRpm < 100) { u8g2.print('0'); }
+        u8g2.print(stovkyZbytekRpm);
       }
 
       u8g2.setFont(u8g2_font_6x10_tf);
       u8g2.setCursor(0, 64);
-      u8g2.print(F("rpm"));
+      u8g2.print(F("RPM"));
 
-      if (topRpm != 0)
-      {
-        char topRpmStr[12];
-        snprintf(topRpmStr, sizeof(topRpmStr), "MAX %u", topRpm * TEST_MULTIPLIER);
-        int sirkaMax = u8g2.getStrWidth(topRpmStr);
-        u8g2.setCursor(128 - sirkaMax, 12);
-        u8g2.print(topRpmStr);
-      }
+      if (topRpm != 0)   // TOP RPM
+      { u8g2.drawXBMP(26, 57, 5, 7, IKONA_TOP);
+        u8g2.setCursor(35, 64);
+        u8g2.print(topRpm * TEST_MULTIPLIER);}
 
-      if (tripMetry > 0)
-      {
-        u8g2.setCursor(128 - sirkaTripu, 64);
+      if (tripMetry > 100) // TRIP v otáčkoměru
+      { u8g2.setCursor(128 - sirkaTripu, 64);
         u8g2.print(tripText);
       }
-    }
-    else
-    {
+    }else{
+
+      
       // ====================================================
-      // LAYOUT B: STANDARDNÍ RYCHLOMĚR
+      // 16.4) LAYOUT B: SPÍDO
       // ====================================================
 
 
     // ----------------------------------------------------
     // RPM vpravo nahoře (ve stovkách RPM). Zobrazí se pokud nějaké otáčky čteme
     // ----------------------------------------------------
+    
     if (testRpm != 0){
       u8g2.setFont(u8g2_font_logisoso24_tn);
       if (rpmStovky < 100) { u8g2.setCursor(99, 31); }  // dvoumístné
       else                 { u8g2.setCursor(85, 31); }  // třímístné
-      if (rpmStovky < 10)  { u8g2.print('0'); }          // vodicí nula
+      if (rpmStovky < 10)  { u8g2.print('0'); }         // vodicí nula
       u8g2.print(rpmStovky);
     }
 
     // ----------------------------------------------------
     // Velké číslo rychlosti.
     // ----------------------------------------------------
+    
     u8g2.setFont(u8g2_font_logisoso58_tn);
 
     if (testRychlost < 10)       { u8g2.setCursor(37, 58); }  // (x,y)
@@ -861,9 +789,9 @@ void vykresliDashboard()
     // ----------------------------------------------------
     // TOP SPEED (jen když stojíme a něco už se zaznamenalo).
     // ----------------------------------------------------
+    
     if (testRychlost == 0 && topRychlostKmh != 0)
-    {
-      if (testRpm == 0) { u8g2.drawXBMP(98, 17, 5, 7, IKONA_TOP); }  // (šipka nahoru; x,y,w,h)
+    { if (testRpm == 0) { u8g2.drawXBMP(98, 17, 5, 7, IKONA_TOP); }  // (šipka nahoru; x,y,w,h)
       else              { u8g2.drawXBMP(0, 10, 5, 7, IKONA_TOP); }
 
       u8g2.setFont(u8g2_font_6x10_tf);
@@ -877,29 +805,29 @@ void vykresliDashboard()
     // ----------------------------------------------------
     u8g2.setFont(u8g2_font_6x10_tf);
 
-    // TRIP, vidět stále, zarovnaný doprava
+    // TRIP, zarovnaný doprava
+    //_______________________________________
+    if (tripMetry > 90) {
     u8g2.setCursor(128 - sirkaTripu, 64);
-    u8g2.print(tripText);
+    u8g2.print(tripText);}
 
     // Popisek km/h, jen když nečteme RPM
+    //_______________________________________
     if (testRpm == 0)
-    {
-      u8g2.setCursor(98, 36);
+    { u8g2.setCursor(98, 36);
       u8g2.print(F("km/h"));
     }
 
     // Při pomalé jízdě: popisek rpm a ODO km
-    if (testRychlost <= 9)
-    {
-      if (testRpm != 0)
-      {
-        u8g2.setCursor(103, 41);
+    //_______________________________________
+    if (testRychlost <= 19)
+    { if (testRpm != 0)
+      { u8g2.setCursor(103, 41);
         u8g2.print(F("rpm"));
       }
-      if (odoMetry >= 900)
-       {
-      u8g2.setCursor(0, 64);
-      u8g2.print(odoMetry / 1000);}
+      if (odoMetry >= 900) // pokud už jsme nějaké zaznamenali
+      { u8g2.setCursor(0, 64);
+        u8g2.print(odoMetry / 1000);}
     }
     }
   }while (u8g2.nextPage());

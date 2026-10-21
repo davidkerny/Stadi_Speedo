@@ -1,11 +1,46 @@
 *MULTIGAUGE CHANGELOG*
+________________________________________________________
 
-V1.3 Initial
-V1.4 
-	- Watchdog spuštěn už na začátku setupu, nutno 
-	vyzkoušet jeslti nebude timeoutovat při běžném provozu
-	- I2C timeout nejde udělat. tak aspoň "odseknutí", I2C BUS CLEAR devíti pulzy
-	- během loga 8x blikne LED, pro rozlišení od blikání heartbeatu
+
+v1.85	Dolazení módů: Spído mode, Tacho mode a RevMode
+	úklid na displeji i v kódu.
+	Multigauge de facto nahrazuje i Tacho.
+
+Sketch uses 26784 bytes (82%) of program storage space. Maximum is 32384 bytes.
+Global variables use 932 bytes (45%) of dynamic memory, leaving 1116 bytes for local variables. Maximum is 2048
+
+v1.8	Přidán RPM mode, který ukazuje jen RPM, když nečtem otáčky
+	úklid na displeji
+	TopRPM
+
+v1.7	FIXED; Šetříme RAM
+	- displej používá page buffer (_2_) místo celého (_F_)  -> cca -770 B
+	- texty ve flash (PROGMEM / F())
+	- trip bez floatu a dtostrf
+
+v1.63
+	při resetu se nezobrazuje welcome logo, ale rovnou navážeme. welcome logo jen při studeném startu.
+Sketch uses 25356 bytes (78%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1763 bytes (86%) of dynamic memory, leaving 285 bytes for local variables.
+!!!!!!!!!!!!!!!!!!!!!!!STACK OVERFLOW!!!!!!!!! funguje na 328P nefunguje na 328PB!!!!!!!!!!
+
+v1.62
+	reorganizace LCD; trip se zobrazuje stále, když nečteme RPM, vpravo nápis km/h a TOPSPEED, aka uklizeno za všech podmínek
+	Multigauge de facto nahrazuje i Speedo.
+
+v1.61
+	TOP Speed, retained v RAM jako TRIPmetr, zobrazené při stání v levém hornim rohu, pokud už se něco zaznamenalo.
+	RPM se zobrazují jen když nějaké čteme
+
+v1.6
+	Zachování obsahu RAM po resetu za jízdy. (TRIP metr) kontrola validity RAM skrze magic number. Po delší odstávce jede TRIP od nuly
+
+v1.53
+	- MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
+	- MAX_SKOK_KMH = 120.0;  vypnuto taky
+
+v1.52 
+	- tuning fyzických rozměrů kola, drobný úklid
 
 v1.5
 	 - oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
@@ -21,38 +56,13 @@ v1.5
 Sketch uses 24890 bytes (76%) of program storage space. Maximum is 32384 bytes.
 Global variables use 1751 bytes (85%) of dynamic memory. Odhadovaná potřeba ~150 B
 
-v1.52 
-	- tuning fyzických rozměrů kola, drobný úklid
+V1.4 
+	- Watchdog spuštěn už na začátku setupu, nutno 
+	vyzkoušet jeslti nebude timeoutovat při běžném provozu
+	- I2C timeout nejde udělat. tak aspoň "odseknutí", I2C BUS CLEAR devíti pulzy
+	- během loga 8x blikne LED, pro rozlišení od blikání heartbeatu
 
-v1.53
-	- MAX_ZMENA_RYCHLOSTI_KMH_ZA_S = 120.0 - Když watchdog za jízdy zresetuje budík, je potřeba z nuly naběhnout na aktuální rychlost
-	- MAX_SKOK_KMH = 120.0;  vypnuto taky
-
-v1.6
-	Zachování obsahu RAM po resetu za jízdy. (TRIP metr) kontrola validity RAM skrze magic number. Po delší odstávce jede TRIP od nuly
-
-v1.61
-	TOP Speed, retained v RAM jako TRIPmetr, zobrazené při stání v levém hornim rohu, pokud už se něco zaznamenalo.
-	RPM se zobrazují jen když nějaké čteme
-
-v1.62
-	reorganizace LCD; trip se zobrazuje stále, když nečteme RPM, vpravo nápis km/h a TOPSPEED, aka uklizeno za všech podmínek
-	Multigauge de facto nahrazuje i Speedo.
-
-v1.63
-	při resetu se nezobrazuje welcome logo, ale rovnou navážeme. welcome logo jen při studeném startu.
-Sketch uses 25356 bytes (78%) of program storage space. Maximum is 32384 bytes.
-Global variables use 1763 bytes (86%) of dynamic memory, leaving 285 bytes for local variables.
-!!!!!!!!!!!!!!!!!!!!!!!STACK OVERFLOW!!!!!!!!! funguje na 328P nefunguje na 328PB!!!!!!!!!!
-
-v1.7	FIXED; Šetříme RAM
-	- displej používá page buffer (_2_) místo celého (_F_)  -> cca -770 B
-	- texty ve flash (PROGMEM / F())
-	- trip bez floatu a dtostrf
-
-v1.8	Přidán RPM mode, který ukazuje jen RPM, když nečtem otáčky
-	úklid na displeji
-	TopRPM
+V1.3 Initial
 
 
 
