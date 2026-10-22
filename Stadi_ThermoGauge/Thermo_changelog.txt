@@ -1,0 +1,8 @@
+Stadi Thermo Changelog
+________________________
+
+
+
+0.32 issue: teplota cpu stále driftuje dolu, řidší vyčítání nepomohlo
+
+0.3 opravy znaménka stupňů a tak
