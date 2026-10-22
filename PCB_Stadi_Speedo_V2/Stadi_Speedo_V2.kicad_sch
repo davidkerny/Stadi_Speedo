@@ -4031,6 +4031,173 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:FerriteBead_Small"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "FB"
+				(at 1.905 1.27 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "FerriteBead_Small"
+				(at 1.905 -1.27 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Ferrite bead, small symbol"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "L ferrite bead inductor filter"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Inductor_* L_* *Ferrite*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "FerriteBead_Small_0_1"
+				(polyline
+					(pts
+						(xy -1.8288 0.2794) (xy -1.1176 1.4986) (xy 1.8288 -0.2032) (xy 1.1176 -1.4224) (xy -1.8288 0.2794)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0.889) (xy 0 1.2954)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -1.27) (xy 0 -0.7874)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "FerriteBead_Small_1_1"
+				(pin passive line
+					(at 0 2.54 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -2.54 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:LED_Small"
 			(pin_numbers
 				(hide yes)
@@ -8708,16 +8875,6 @@
 	)
 	(wire
 		(pts
-			(xy 29.21 245.11) (xy 43.18 245.11)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "07cebd86-77be-47c6-bb4a-609b7a6a8ab6")
-	)
-	(wire
-		(pts
 			(xy 58.42 57.15) (xy 69.85 57.15)
 		)
 		(stroke
@@ -9138,6 +9295,16 @@
 	)
 	(wire
 		(pts
+			(xy 93.98 175.26) (xy 96.52 175.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "278a6ef8-8e42-462f-bf27-a309b1157824")
+	)
+	(wire
+		(pts
 			(xy 241.3 250.19) (xy 266.7 250.19)
 		)
 		(stroke
@@ -9335,16 +9502,6 @@
 			(type default)
 		)
 		(uuid "3762268d-f994-4bcb-b784-ea7be0098648")
-	)
-	(wire
-		(pts
-			(xy 29.21 250.19) (xy 43.18 250.19)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "37c2359a-dc7d-49ee-aa13-47ef8a61727e")
 	)
 	(wire
 		(pts
@@ -9605,6 +9762,16 @@
 			(type default)
 		)
 		(uuid "58a259d6-bf73-49c9-a91f-9af95d3bd15b")
+	)
+	(wire
+		(pts
+			(xy 25.4 245.11) (xy 31.75 245.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "590b7bb7-36e3-4d38-8740-b68f8df3db66")
 	)
 	(wire
 		(pts
@@ -10168,6 +10335,16 @@
 	)
 	(wire
 		(pts
+			(xy 36.83 245.11) (xy 43.18 245.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7dc202e8-1d2f-4708-95e1-8402ea9d1e45")
+	)
+	(wire
+		(pts
 			(xy 254 129.54) (xy 254 132.08)
 		)
 		(stroke
@@ -10538,6 +10715,16 @@
 	)
 	(wire
 		(pts
+			(xy 25.4 250.19) (xy 31.75 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a066f006-ab13-4fa3-b224-8d94f908fed7")
+	)
+	(wire
+		(pts
 			(xy 85.09 151.13) (xy 93.98 151.13)
 		)
 		(stroke
@@ -10555,6 +10742,16 @@
 			(type default)
 		)
 		(uuid "a20540c1-e2ba-4508-96c0-f25d53c84bbc")
+	)
+	(wire
+		(pts
+			(xy 25.4 245.11) (xy 25.4 246.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a2ca52b5-2421-466d-ae48-d6332f056871")
 	)
 	(wire
 		(pts
@@ -11028,6 +11225,16 @@
 	)
 	(wire
 		(pts
+			(xy 36.83 250.19) (xy 43.18 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d29a517c-ab83-4635-9a8b-431e037457d8")
+	)
+	(wire
+		(pts
 			(xy 114.3 118.11) (xy 114.3 116.84)
 		)
 		(stroke
@@ -11215,6 +11422,16 @@
 			(type default)
 		)
 		(uuid "e19fb921-5d71-4842-92a7-752c3227bd24")
+	)
+	(wire
+		(pts
+			(xy 25.4 250.19) (xy 25.4 248.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e2202224-f1a0-467f-8d9b-c3aea9403a7c")
 	)
 	(wire
 		(pts
@@ -11468,7 +11685,7 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 175.26) (xy 96.52 175.26)
+			(xy 81.28 175.26) (xy 88.9 175.26)
 		)
 		(stroke
 			(width 0)
@@ -15117,7 +15334,7 @@
 		(fields_autoplaced yes)
 		(uuid "25225f84-400a-4a45-a54c-487181ab3d5b")
 		(property "Reference" "TP3"
-			(at 96.52 69.0879 0)
+			(at 95.25 69.0879 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15128,7 +15345,7 @@
 			)
 		)
 		(property "Value" "Label"
-			(at 96.52 71.6279 0)
+			(at 95.25 71.6279 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15171,8 +15388,8 @@
 				)
 			)
 		)
-		(property "Label" "${Value}"
-			(at 96.52 74.1679 0)
+		(property "Label" "PC3"
+			(at 95.25 74.1679 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15267,6 +15484,129 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "#PWR076")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "AERO_FerriteBead:FerriteBead_4A_180Ohm_0806")
+		(at 91.44 175.26 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "25fd2804-8fce-4e9a-b83d-8dc417488696")
+		(property "Reference" "FB7"
+			(at 91.4781 168.91 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "FerriteBead_4A_180Ω"
+			(at 93.218 166.116 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "AERO_Capacitor_SMD:C_0603-1206_universal_Pad1.33x1.80mm_HandSolder"
+			(at 91.44 173.482 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://cz.mouser.com/datasheet/2/281/murata_mure-s-a0008530226-1-1763711.pdf"
+			(at 91.44 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Ferrite Beads EMI Filter SMD 180ohm INFOTMT  4A  22mOhm DC resistance"
+			(at 91.44 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier" "Mouser Electronics"
+			(at 91.44 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "PN" "NFZ2MSD181SZ10L"
+			(at 91.44 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier PN" "81-NFZ2MSD181SZ10L"
+			(at 91.44 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier Link" "https://cz.mouser.com/ProductDetail/Murata-Electronics/NFZ2MSD181SZ10L?qs=rkhjVJ6%2F3EI5R7nKRbJ7XA%3D%3D"
+			(at 91.44 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "57565378-88f1-4861-8ab5-3817a1067a34")
+		)
+		(pin "2"
+			(uuid "b55bc2f4-ff92-4b37-b376-efe34acaf155")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "FB7")
 					(unit 1)
 				)
 			)
@@ -27171,6 +27511,86 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:FerriteBead_Small")
+		(at 34.29 250.19 90)
+		(mirror x)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f7ac66c7-95a6-4565-8abc-b3a7b8634c63")
+		(property "Reference" "FB2"
+			(at 34.2519 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "FerriteBead_Small"
+			(at 34.2519 254 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Inductor_SMD:L_0603_1608Metric"
+			(at 34.29 248.412 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 34.29 250.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Ferrite bead, small symbol"
+			(at 34.29 250.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "67a0bab6-1121-4fe3-a2b4-aeda59c6349e")
+		)
+		(pin "1"
+			(uuid "736ee4c0-7599-4822-b847-d3c6d92473b9")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "FB2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 247.65 30.48 0)
 		(unit 1)
@@ -27991,6 +28411,85 @@
 			(project "Stadi_Speedo_V2"
 				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
 					(reference "R24")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:FerriteBead_Small")
+		(at 34.29 245.11 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "ffce135f-1e93-4c62-9f0a-f87670af3198")
+		(property "Reference" "FB1"
+			(at 34.2519 238.76 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "FerriteBead_Small"
+			(at 29.464 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Inductor_SMD:L_0603_1608Metric"
+			(at 34.29 246.888 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 34.29 245.11 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Ferrite bead, small symbol"
+			(at 34.29 245.11 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "72662c57-e28a-45b8-a6c9-acc54a7c2de5")
+		)
+		(pin "1"
+			(uuid "2bddb932-2dcb-46d5-ac11-e12950d8adfe")
+		)
+		(instances
+			(project "Stadi_Speedo_V2"
+				(path "/d59b9b58-5e27-42e2-8153-65feee1218fc"
+					(reference "FB1")
 					(unit 1)
 				)
 			)
