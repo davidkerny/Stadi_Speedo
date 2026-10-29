@@ -9,7 +9,7 @@
 // ============================================================
 
 // Texty v PROGMEM = leží ve flash, ne v RAM.
-const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.85";
+const char FW_VERZE[] PROGMEM = "  Stadi MultiGauge V1.85";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho navíc čte otáčky motoru na D3 = RPM
@@ -50,8 +50,8 @@ const char FW_VERZE[] PROGMEM = "Stadi MultiGauge V1.85";
 // --- OLED init ---
 // POZOR: "_2_" místo "_F_" = page buffer (256 B). Kreslení MUSÍ být v firstPage()/nextPage().
 // Případně "_1_" (128 B, kreslí se na 8x).
-//U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
-U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
+U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
+//U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
 //U8G2_SSD1306_128X32_UNIVISION_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- SPEEDO snímač kola (INT0) ---
