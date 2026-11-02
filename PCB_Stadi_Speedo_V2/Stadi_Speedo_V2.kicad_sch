@@ -8326,6 +8326,16 @@
 		)
 		(uuid "8534c2f4-ed9b-4756-89af-33c82419ff68")
 	)
+	(text "MAM MBR130LSFT1G ale je to shottky jen do 30V"
+		(exclude_from_sim no)
+		(at 220.218 18.796 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "a8eff23f-8f1b-42e9-acd4-75c6414a4537")
+	)
 	(text "MAXík (optional)"
 		(exclude_from_sim no)
 		(at 34.29 207.01 0)
@@ -12889,9 +12899,8 @@
 				)
 			)
 		)
-		(property "Value" "D_Small"
-			(at 220.472 104.14 0)
-			(hide yes)
+		(property "Value" "NSVBAS21HT3G"
+			(at 223.012 94.742 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12911,7 +12920,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.onsemi.com/pdf/datasheet/bas21ht1-d.pdf"
 			(at 226.06 104.14 90)
 			(hide yes)
 			(show_name no)
@@ -12922,7 +12931,7 @@
 				)
 			)
 		)
-		(property "Description" "Diode, small symbol"
+		(property "Description" "Malé signálové spínací diody SS SWCH DIO 250V"
 			(at 226.06 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -12933,18 +12942,7 @@
 				)
 			)
 		)
-		(property "Sim.Device" "D"
-			(at 226.06 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Sim.Pins" "1=K 2=A"
+		(property "PN" " NSVBAS21HT3G "
 			(at 226.06 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -12956,6 +12954,17 @@
 			)
 		)
 		(property "JLCPCB Part" ""
+			(at 226.06 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier PN" " 863-NSVBAS21HT3G "
 			(at 226.06 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -13662,7 +13671,7 @@
 			)
 		)
 		(property "Value" "10k (4K7)"
-			(at 230.378 103.632 90)
+			(at 230.124 101.854 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -18523,7 +18532,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "SMCJ85CA"
+		(property "Value" "SMAJ48CA-HP6AT/13"
 			(at 116.84 123.1899 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18545,7 +18554,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://cz.mouser.com/datasheet/2/240/media-3320072.pdf"
+		(property "Datasheet" "https://cz.mouser.com/datasheet/3/508/1/SMAJ-HP6AT_1.pdf"
 			(at 114.3 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -18556,7 +18565,7 @@
 				)
 			)
 		)
-		(property "Description" "ESD Suppressors / TVS Diodes 1.5kW 85V 5% Bi-Directional Ipp:11A Vclamp: 137V Vbrkdn: 94.4V"
+		(property "Description" "Ochranné diody proti elektrostatickým výbojům/diody pro potlačení napětí z přechodových jevů SMAJ DO214AC 48V 77.4V AEC-Q101"
 			(at 114.3 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -18567,7 +18576,7 @@
 				)
 			)
 		)
-		(property "PN" "SMCJ85CA"
+		(property "PN" " SMAJ48CA-HP6AT/13 "
 			(at 114.3 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -18578,7 +18587,7 @@
 				)
 			)
 		)
-		(property "Supplier PN" "576-SMCJ85CA"
+		(property "Supplier PN" " 603-SMAJ48CAHP6AT/13 "
 			(at 114.3 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -21177,7 +21186,7 @@
 			)
 		)
 		(property "Value" "FerriteBead_4A_180Ω"
-			(at 164.592 56.896 0)
+			(at 166.878 38.354 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -25499,7 +25508,7 @@
 				)
 			)
 		)
-		(property "Value" "D_Small"
+		(property "Value" "YQ1MM10ATFTR"
 			(at 210.82 32.258 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25520,7 +25529,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.rohm.com/datasheet?p=YQ1MM10ATF&dist=Mouser&media=referral&source=mouser.com&campaign=Mouser"
 			(at 210.82 26.67 90)
 			(hide yes)
 			(show_name no)
@@ -25531,29 +25540,7 @@
 				)
 			)
 		)
-		(property "Description" "Diode, small symbol"
-			(at 210.82 26.67 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Sim.Device" "D"
-			(at 210.82 26.67 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Sim.Pins" "1=K 2=A"
+		(property "Description" "Schottkyho diody a usměrňovače RECT 100V 1A SM SCHOTTKY"
 			(at 210.82 26.67 0)
 			(hide yes)
 			(show_name no)
@@ -25565,6 +25552,28 @@
 			)
 		)
 		(property "JLCPCB Part" ""
+			(at 210.82 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "PN" " YQ1MM10ATFTR "
+			(at 210.82 26.67 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier PN" " 755-YQ1MM10ATFTR "
 			(at 210.82 26.67 0)
 			(hide yes)
 			(show_name no)
@@ -25678,7 +25687,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "d7730d5e-1ae5-4180-abe7-de2f38877806")
 		(property "Reference" "L1"
 			(at 238.76 36.83 90)
@@ -25690,8 +25698,8 @@
 				)
 			)
 		)
-		(property "Value" "L_Ferrite"
-			(at 238.76 39.37 90)
+		(property "Value" "SRR5828A-330M"
+			(at 242.316 39.624 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -25711,7 +25719,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.mouser.com/catalog/specsheets/Bourns_01-27-2024_SRR5828A_Datasheet.pdf?_gl=1*1tg0tbk*_gcl_dc*R0NMLjE3ODk1ODk2NzUuQ0pqc3JvSDE4NVlERmVQTlZnTWRVd3dFSmc.*_gcl_au*MTUzNjU4NzEwOC4xNzkyNTY5OTA5LjIxMjQzODY1ODAuMTc5MjU3MTI0NC4xNzkyNTcyMjAwLjM1ODcxNzcxNy4xNzkyNTcxMjQ0LjE3OTI1NzIyMDA.*_ga*NzEyMTc3NTMwLjE3ODM1NDQ0NDM.*_ga_15W4STQT4T*czE3OTI1Njk5MDkkbzQkZzEkdDE3OTI1NzIzMjckajU2JGwwJGgw"
+		(property "Datasheet" "https://www.mouser.com/catalog/specsheets/Bourns_01-27-2024_SRR5828A_Datasheet.pdf"
 			(at 238.76 43.18 0)
 			(hide yes)
 			(show_name no)
@@ -25724,6 +25732,28 @@
 		)
 		(property "Description" "SRR5828A Inductor with ferrite core"
 			(at 238.76 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "PN" " SRR5828A-330M "
+			(at 238.76 43.18 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Supplier PN" " 6521-SRR5828A-330M "
+			(at 238.76 43.18 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27096,8 +27126,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "PTVS8V5S1UTR-QX"
-			(at 194.818 51.054 0)
+		(property "Value" "PTVS43VS1UR,115"
+			(at 197.358 41.91 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -27118,7 +27148,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PTVSXS1UTR-Q_SER.pdf"
+		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PTVSXS1UR_SER.pdf"
 			(at 198.12 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -27129,7 +27159,7 @@
 				)
 			)
 		)
-		(property "Description" "Ochranné diody proti elektrostatickým výbojům/diody pro potlačení napětí z přechodových jevů PTVS8V5S1UTR-Q/SOD123W/CFP3"
+		(property "Description" "Ochranné diody proti elektrostatickým výbojům/diody pro potlačení napětí z přechodových jevů PTVS43VS1UR/SOD123W/CFP3"
 			(at 200.66 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -27140,7 +27170,7 @@
 				)
 			)
 		)
-		(property "PN" " PTVS8V5S1UTR-QX "
+		(property "PN" " PTVS43VS1UR,115 "
 			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -27151,7 +27181,7 @@
 				)
 			)
 		)
-		(property "Supplier PN" " 771-PTVS8V5S1UTR-QX "
+		(property "Supplier PN" " 771-PTVS43VS1UR115 "
 			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)

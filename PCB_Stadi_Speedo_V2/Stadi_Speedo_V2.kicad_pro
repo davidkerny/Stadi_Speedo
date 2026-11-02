@@ -696,6 +696,12 @@
           "label": "JLCPCB Part",
           "name": "JLCPCB Part",
           "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Label",
+          "name": "Label",
+          "show": false
         }
       ],
       "filter_string": "",
