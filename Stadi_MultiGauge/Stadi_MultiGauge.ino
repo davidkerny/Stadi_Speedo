@@ -11,7 +11,7 @@
 // ============================================================
 
 // Texty v PROGMEM = leží ve flash
-const char FW_VERZE[] PROGMEM ="Stadi MultiGauge 2.0 Debug";
+const char FW_VERZE[] PROGMEM ="Stadi MultiGauge 2.1 Debug";
 
 //  Speedo čte kolo na D2. = KM/H
 //  Tacho  čte otáčky motoru na D3 = RPM
@@ -160,6 +160,8 @@ bool motorBezi = false;
 // -- EEPROM housekeeping --
 int odoAdresaAktualni = ODO_ADR_START;
 unsigned long odoNaposledyUlozeno = 0;
+long posledniZmereneVccMv = 0; // v mV, např. 4200 = 4.2V, 0 = ještě se neměřilo
+bool nizkeNapeti = false; // tečka, indikátor nízkého napětí
 
 // -- Časování displeje --
 unsigned long displejNaposledyCas = 0;
@@ -181,6 +183,7 @@ volatile uint8_t heartbeatPocitadloPreruseni = 0;
 #ifdef DEBUG_MODE
 unsigned long i2cTimeoutPocet __attribute__((section(".noinit")));  // I2C timeouty zotavené bez resetu
 unsigned int resetPocet __attribute__((section(".noinit")));        // resety za provozu (RAM přežila)
+unsigned long eepromNapetiPocet __attribute__((section(".noinit"))); // ODO se nezapsalo kvůli nízkému Vcc
 #endif
 
 // ============================================================
@@ -223,11 +226,15 @@ void nactiOdoZEEPROM()
   odoMetry = nejvyssiPlatnaHodnota;
   odoAdresaAktualni = adresaSNejvyssiHodnotou;}
 
-bool ulozOdoDoEEPROM(unsigned long hodnotaMetru)
-{
-#if KONTROLA_NAPETI_ZAPNUTA
-  if (nactiNapetiVcc() < MIN_VCC_PRO_ZAPIS_MV)
-  { return false; }
+bool ulozOdoDoEEPROM(unsigned long hodnotaMetru){
+  #if KONTROLA_NAPETI_ZAPNUTA
+  posledniZmereneVccMv = nactiNapetiVcc(); // změřit jednou, uložit, a použít i na displej
+  if (posledniZmereneVccMv < MIN_VCC_PRO_ZAPIS_MV){ 
+    nizkeNapeti = true; // >>> tečka se rozsvítí
+    #ifdef DEBUG_MODE
+    eepromNapetiPocet++; // >>> DEBUG - nezapsalo se kvůli napětí
+    #endif
+    return false; }
 #endif
   odoAdresaAktualni += 4;
   if (odoAdresaAktualni > ODO_ADR_KONEC)
@@ -516,7 +523,8 @@ i2cBusClearPokudJeZaseknuto();
 #ifdef DEBUG_MODE
   if (studenyStart)
   { resetPocet = 0;
-    i2cTimeoutPocet = 0; }               // noinit = po studeném startu v tom je smetí
+    i2cTimeoutPocet = 0;
+    eepromNapetiPocet = 0;}              // noinit = po studeném startu vynulovat
   else
   { resetPocet++; }                      // RAM přežila = byl to reset, ne zapnutí
 #endif
@@ -770,11 +778,13 @@ void vykresliDashboard()
   u8g2.setFont(u8g2_font_6x10_tf);
   sirkaTripu = u8g2.getStrWidth(tripText);
 
+
   // --------------------------------------------------------
   // 16.2) KRESLENÍ
   // --------------------------------------------------------
   
   u8g2.firstPage(); do {
+    
     if (rezimOtackomeru)
     {
       // ====================================================
@@ -865,15 +875,25 @@ void vykresliDashboard()
     // Drobné nápisy: TRIP, km/h, rpm, ODO
     // ----------------------------------------------------
 
-// >>> DEBUG 
-#ifdef DEBUG_MODE
-if (i2cTimeoutPocet > 0 || resetPocet > 0) {
-  u8g2.setFont(u8g2_font_5x7_tf);
-  u8g2.setCursor(30, 64);
-  u8g2.print(F("I2C")); u8g2.print(i2cTimeoutPocet);  // timeouty zotavené bez resetu
-  u8g2.print(F(" R"));  u8g2.print(resetPocet);       // resety za provozu
-}
-#endif  // <<< DEBUG
+    // DEBUG Diagnostika: počítadlo závad
+    #ifdef DEBUG_MODE
+    if (i2cTimeoutPocet > 0 || resetPocet > 0 || eepromNapetiPocet > 0) {
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.setCursor(30, 64);
+    u8g2.print(F("I2C")); u8g2.print(i2cTimeoutPocet);  // timeouty zotavené bez resetu
+    u8g2.print(F(" R"));  u8g2.print(resetPocet);       // resety za provozu
+    u8g2.print(F(" E"));  u8g2.print(eepromNapetiPocet);// EEPROM low voltage ochrana
+    u8g2.setCursor(0, 6);
+    if (posledniZmereneVccMv > 0) {
+    u8g2.print(F(" ")); u8g2.print(posledniZmereneVccMv / 1000);
+    u8g2.print(F(".")); u8g2.print((posledniZmereneVccMv % 1000) / 100);
+    u8g2.print(F("V"));}}
+    #endif
+
+    // Low Voltage Flag - Hnědý poplach: tečka po neúspěšném zápisu do eeprom
+    if (nizkeNapeti) {
+    u8g2.drawPixel(0, 0);
+    }
 
     
     u8g2.setFont(u8g2_font_6x10_tf);
@@ -888,20 +908,17 @@ if (i2cTimeoutPocet > 0 || resetPocet > 0) {
     //_______________________________________
     if (testRpm == 0)
     { u8g2.setCursor(98, 36);
-      u8g2.print(F("km/h"));
-    }
+      u8g2.print(F("km/h"));}
 
     // Při pomalé jízdě: popisek rpm a ODO km
     //_______________________________________
     if (testRychlost <= 19)
     { if (testRpm != 0)
       { u8g2.setCursor(103, 41);
-        u8g2.print(F("rpm"));
-      }
+        u8g2.print(F("rpm"));}
       if (odoMetry >= 900) // pokud už jsme nějaké zaznamenali
       { u8g2.setCursor(0, 64);
-        u8g2.print(odoMetry / 1000);}
-    }
-    }
+        u8g2.print(odoMetry / 1000);}}}
+        
   }while (u8g2.nextPage());
 }

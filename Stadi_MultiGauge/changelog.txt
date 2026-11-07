@@ -1,6 +1,10 @@
 *MULTIGAUGE CHANGELOG*
 ________________________________________________________
 
+v2.1	Debug: počítadlo neúspěšných EEPROM zápisů kvůli low voltage.
+		výpis napětí na displeji
+	Low Voltage Flag / Hnědý poplach; po neúspěšném zápisu do EEPROM se zobrazí tečka v levém horním rohu displeje
+
 v2.0	možná Spása: I2C TIMEOUT !!! upravená Wire knihovna: zamrzlé I2C se obnovuje bez nutnosti resetu
 	Debug Mode; ukazuje na spodku displeě počet I2C fixů a resetů, pokud nějaké byly.
 
