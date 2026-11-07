@@ -11,7 +11,7 @@
 // ============================================================
 
 // Texty v PROGMEM = leží ve flash
-const char FW_VERZE[] PROGMEM ="Stadi MultiGauge 2.1 Debug";
+const char FW_VERZE[] PROGMEM =" Stadi MultiGauge 2.11";
 
 //  Speedo čte kolo na D2. = KM/H
 //  Tacho  čte otáčky motoru na D3 = RPM
@@ -67,8 +67,8 @@ U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
 const byte SENSOR_PIN = 2;
 
 // Obvod kola v metrech. = vzdálenost per pulz
-const float OBVOD_KOLA_M = 1.74;   //16" kolo, guma terénní 16x2.75 FICHTL / SIMSON
-//const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 STADION
+const float OBVOD_KOLA_M = 1.74;    //16" kolo, guma terénní 16x2.75 FICHTL / SIMSON
+//const float OBVOD_KOLA_M = 1.86;  //19" kolo, guma 19x2.25 STADION
 
 // --- SPEEDO tuning ---
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
@@ -110,7 +110,7 @@ const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 
 // --- Displej ---
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
-
+const unsigned long I2C_TIMEOUT_US = 10000UL;  // max čekání na jednu I2C operaci (10 ms)
 
 
 // ============================================================
@@ -406,7 +406,11 @@ void zobrazUvodniLogo()
   { u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
     u8g2.setFont(u8g2_font_5x7_tf);
     u8g2.setCursor(0, 64);
-    u8g2.print((__FlashStringHelper*)FW_VERZE); }
+    u8g2.print((__FlashStringHelper*)FW_VERZE); 
+    #ifdef DEBUG_MODE
+    u8g2.print(F(" D"));   // debug build
+    #endif
+    }
   while (u8g2.nextPage());
 
   const unsigned long krokMs =
@@ -467,7 +471,7 @@ void i2cStart()
 {
   Wire.end();                          // bez tohohle bit-bang na pinech nic nehne
   i2cBusClearPokudJeZaseknuto();
-  Wire.setWireTimeout(10000, true);    // 10 ms, při timeoutu resetni TWI hardware
+  Wire.setWireTimeout(I2C_TIMEOUT_US, true);    // 10 ms, při timeoutu resetni TWI hardware
   u8g2.begin();
   Wire.clearWireTimeoutFlag();         // begin() na mrtvém displeji mohl nastavit flag
 }
