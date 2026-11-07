@@ -17,7 +17,7 @@ const char FW_VERZE[] PROGMEM ="Stadi MultiGauge 2.1 Debug";
 //  Tacho  čte otáčky motoru na D3 = RPM
 //  ODOmetr je v EEPROM. TRIP, TopRychlost a TopRPM v RAM.
 //  Inteligentní zobrazení podle relevance.
-//  v Debug mode ukazuje I2C errory a Resety.
+//  v Debug mode počítá: I2C errory, Resety, hnědé poplachy a napětí na MCU.
 //
 //  Ochrana proti rušení, falešným pulzům, zamrznutí procesoru, rozbití I2C komunikace, 
 //  Ochrana EEPROM proti korupci, obnovení dat z RAM po resetu
