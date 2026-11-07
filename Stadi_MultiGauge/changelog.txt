@@ -1,6 +1,13 @@
 *MULTIGAUGE CHANGELOG*
 ________________________________________________________
 
+v2.0	možná Spása: I2C TIMEOUT !!! upravená Wire knihovna: zamrzlé I2C se obnovuje bez nutnosti resetu
+	Debug Mode; ukazuje na spodku displeě počet I2C fixů a resetů, pokud nějaké byly.
+
+Sketch uses 28814 bytes (88%) of program storage space. Maximum is 32384 bytes.
+Global variables use 962 bytes (46%) of dynamic memory, leaving 1086 bytes for local variables.
+
+v1.99	nic nového
 
 v1.85	Dolazení módů: Spído mode, Tacho mode a RevMode
 	úklid na displeji i v kódu.

@@ -1,5 +1,7 @@
 #include <Arduino.h>
-#include <Wire.h>
+#include <Wire.h>  // upravena s timeoutem
+//  je potreba mit zapnuty #define WIRE_TIMEOUT 
+//  v C:\Users\**\AppData\Local\Arduino15\packages\MiniCore\hardware\avr\3.1.3\libraries\Wire\src\Wire_timeout.h
 #include "U8g2lib.h"
 #include <EEPROM.h>
 #include <avr/wdt.h>
@@ -8,13 +10,17 @@
 
 // ============================================================
 
-// Texty v PROGMEM = leží ve flash, ne v RAM.
-const char FW_VERZE[] PROGMEM = "  Stadi MultiGauge V1.85";
+// Texty v PROGMEM = leží ve flash
+const char FW_VERZE[] PROGMEM ="Stadi MultiGauge 2.0 Debug";
 
-//  Speedo furt čte kolo na D2. = KM/H
-//  Tacho navíc čte otáčky motoru na D3 = RPM
-//  RPM ve stovkách (50 = 5000 RPM, 70 = 7000 RPM.
+//  Speedo čte kolo na D2. = KM/H
+//  Tacho  čte otáčky motoru na D3 = RPM
 //  ODOmetr je v EEPROM. TRIP, TopRychlost a TopRPM v RAM.
+//  Inteligentní zobrazení podle relevance.
+//  v Debug mode ukazuje I2C errory a Resety.
+//
+//  Ochrana proti rušení, falešným pulzům, zamrznutí procesoru, rozbití I2C komunikace, 
+//  Ochrana EEPROM proti korupci, obnovení dat z RAM po resetu
 //
 // ============================================================
 
@@ -28,6 +34,7 @@ const char FW_VERZE[] PROGMEM = "  Stadi MultiGauge V1.85";
 // 8) FILTR TACHA
 // 9A) HEARTBEAT LED (diagnostika, D13)
 // 9B) ÚVODNÍ LOGO
+// 9C) I2C FIX / BUS CLEAR (HAJZLZVON)
 // 10) HLAVNÍ SMYČKA - SETUP
 // 11) ZPRACOVÁNÍ SPEEDA
 // 12) ZPRACOVÁNÍ TACHA
@@ -47,9 +54,11 @@ const char FW_VERZE[] PROGMEM = "  Stadi MultiGauge V1.85";
 // --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
 #define TEST_MULTIPLIER 1
 
+// --- DEBUG: výpis čítačů I2C/WDT na displeji (pro finální provoz zakomentuj) ---
+#define DEBUG_MODE
+
 // --- OLED init ---
 // POZOR: "_2_" místo "_F_" = page buffer (256 B). Kreslení MUSÍ být v firstPage()/nextPage().
-// Případně "_1_" (128 B, kreslí se na 8x).
 U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
 //U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
 //U8G2_SSD1306_128X32_UNIVISION_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
@@ -58,8 +67,8 @@ U8G2_SSD1306_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
 const byte SENSOR_PIN = 2;
 
 // Obvod kola v metrech. = vzdálenost per pulz
-const float OBVOD_KOLA_M = 1.74; //16" kolo, guma terénní 16x2.75 simson
-//const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 stadion
+const float OBVOD_KOLA_M = 1.74;   //16" kolo, guma terénní 16x2.75 FICHTL / SIMSON
+//const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 STADION
 
 // --- SPEEDO tuning ---
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
@@ -77,7 +86,7 @@ const byte TACHO_PIN = 3; // ducati energia simson
 // --- TACHO tuning ---
 // const unsigned long MIN_MEZERA_TACHO_US = 2800UL; v případě 1pulz=1ot.
 const unsigned long MIN_MEZERA_TACHO_US = 1333UL; // (15Krpm 3pulz/ot)
-const float PULZY_NA_OTACKU = 3.0;  // Tacho pulzy per otáčka DUCATI ENERGIA
+const float PULZY_NA_OTACKU = 3.0;  // Tacho pulzy per otáčka: ZAPALKO DUCATI ENERGIA
 const float MAX_ROZUMNE_RPM = 15000.0;
 const float MIN_ROZUMNE_RPM = 500.0;
 const float MAX_SKOK_RPM = 7000.0; // benevolentnější měření
@@ -101,6 +110,8 @@ const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 
 // --- Displej ---
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
+
+
 
 // ============================================================
 // 2) STAV PROGRAMU
@@ -165,6 +176,12 @@ volatile bool tachoIsrMameNovyPulz = false;
 
 // -- Heartbeat LED (diagnostika, D13) --
 volatile uint8_t heartbeatPocitadloPreruseni = 0;
+
+// -- DEBUG MODE: I2C FIX & WDT --
+#ifdef DEBUG_MODE
+unsigned long i2cTimeoutPocet __attribute__((section(".noinit")));  // I2C timeouty zotavené bez resetu
+unsigned int resetPocet __attribute__((section(".noinit")));        // resety za provozu (RAM přežila)
+#endif
 
 // ============================================================
 // 3) MĚŘENÍ NAPÁJENÍ (Vcc)
@@ -396,19 +413,13 @@ void zobrazUvodniLogo()
 }
 
 // ============================================================
-// 10) HLAVNÍ SMYČKA - SETUP
+// 9C) I2C BUS CLEAR
 // ============================================================
 
-void setup()
+// I2C FIX: zvon na hajzl pro I2C. aka defibrilátor = kurva důležité.
 
-{ // Po resetu watchdogem by mohl zůstat běžet s krátkým limitem.
-  MCUSR = 0;
-  wdt_disable();
-  wdt_enable(WDTO_8S);
-
-  // === I2C BUS CLEAR ===
-  // zvon na hajzl pro I2C. aka defibrilátor = kurva důležité.
-
+void i2cBusClearPokudJeZaseknuto()
+{
   pinMode(SDA, INPUT_PULLUP);
   pinMode(SCL, INPUT_PULLUP);
   delayMicroseconds(10);
@@ -438,12 +449,50 @@ void setup()
     delayMicroseconds(5);
   }
 
-  // Obnovení běžného I2C režimu
+  // Resume do běžného I2C režimu
   pinMode(SDA, INPUT_PULLUP);
   pinMode(SCL, INPUT_PULLUP);
+}
 
+// Start I2C od nuly: uvolnit piny, vyklepat sběrnici, nahodit Wire s timeoutem a displej.
+// Volá se při startu i po timeoutu za běhu.
+void i2cStart()
+{
+  Wire.end();                          // bez tohohle bit-bang na pinech nic nehne
+  i2cBusClearPokudJeZaseknuto();
+  Wire.setWireTimeout(10000, true);    // 10 ms, při timeoutu resetni TWI hardware
+  u8g2.begin();
+  Wire.clearWireTimeoutFlag();         // begin() na mrtvém displeji mohl nastavit flag
+}
+
+void vykresliDashboardBezpecne()
+{ vykresliDashboard();
+  if (Wire.getWireTimeoutFlag()) {
+    #ifdef DEBUG_MODE
+    i2cTimeoutPocet++;
+    #endif
+    i2cStart();
+  }
+}
+
+
+// ============================================================
+// 10) HLAVNÍ SMYČKA - SETUP
+// ============================================================
+
+void setup()
+
+{ // Po resetu watchdogem by mohl zůstat běžet s krátkým limitem.
+  MCUSR = 0;
+  wdt_disable();
+  wdt_enable(WDTO_8S);
+
+// I2C FIX
+i2cBusClearPokudJeZaseknuto();
 
   u8g2.begin();
+
+  i2cStart();   // I2C FIX
 
   // Speedo: D2 / INT0.
   pinMode(SENSOR_PIN, INPUT_PULLUP);
@@ -463,6 +512,15 @@ void setup()
     zobrazUvodniLogo();     // logo jen při studeném startu
   }
 
+// DEBUG MODE počítadlo I2C bus clearů a resetů
+#ifdef DEBUG_MODE
+  if (studenyStart)
+  { resetPocet = 0;
+    i2cTimeoutPocet = 0; }               // noinit = po studeném startu v tom je smetí
+  else
+  { resetPocet++; }                      // RAM přežila = byl to reset, ne zapnutí
+#endif
+  
   // Heartbeat běží od teď dál, nezávisle na zbytku programu.
   nastavHeartbeatTimer();
 
@@ -644,6 +702,8 @@ void zkontrolujJestliStojimeTacho()
 
 void loop()
 {
+  // if (millis() > 1999UL) { while (1); }   // TEST WATCHDOG WDT - resetuje furt dokola
+
   // Watchdog krmíme pravidelně, jinak MCU udělá reset.
   wdt_reset();
 
@@ -657,7 +717,8 @@ void loop()
 
   if (ted - displejNaposledyCas > DISPLEJ_INTERVAL_MS)
   {
-    vykresliDashboard();
+    
+    vykresliDashboardBezpecne();
     displejNaposledyCas = ted;
   }
 }
@@ -803,6 +864,18 @@ void vykresliDashboard()
     // ----------------------------------------------------
     // Drobné nápisy: TRIP, km/h, rpm, ODO
     // ----------------------------------------------------
+
+// >>> DEBUG 
+#ifdef DEBUG_MODE
+if (i2cTimeoutPocet > 0 || resetPocet > 0) {
+  u8g2.setFont(u8g2_font_5x7_tf);
+  u8g2.setCursor(30, 64);
+  u8g2.print(F("I2C")); u8g2.print(i2cTimeoutPocet);  // timeouty zotavené bez resetu
+  u8g2.print(F(" R"));  u8g2.print(resetPocet);       // resety za provozu
+}
+#endif  // <<< DEBUG
+
+    
     u8g2.setFont(u8g2_font_6x10_tf);
 
     // TRIP, zarovnaný doprava

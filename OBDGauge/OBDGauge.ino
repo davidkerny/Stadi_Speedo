@@ -13,6 +13,8 @@ const char FW_VERZE[] PROGMEM = "  OBDGauge V0.1";
 //  Pošle dotaz 0x7DF "mode 01, PID xx", ECU odpoví na 0x7E8..0x7EF.
 //  MCP2515 se řeší bit-bangem na libovolných pinech, žádná knihovna.
 //  CAN_CS=A0, CAN_SCK=A1, CAN_MISO=4, CAN_MOSI=5
+//  
+//  Pro auta s CANBusem. E46 by potřebovala K-line tranceiver, třeba L9637D.
 //
 // ============================================================
 
