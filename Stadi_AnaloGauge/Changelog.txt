@@ -1,13 +1,30 @@
 Stadi AnaloGauge X27
 
 
-1.0 initial
-		Sketch uses 22904 bytes (70%) of program storage space. Maximum is 32384 bytes.
-		Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for local variables.
+2.0	I2C BUS FIX!! upravena wire knihovna s timeoutem. Zaseklé I2C se obnoví bez WDT resetu
+	Debug mode, zobrazuěm I2C errors, resety a eeprom vyhnědnutí.
+	V horním levém rohu indikátor hnědého poplachu.
+	atd...
 
-1.1  kalibrace krokáče, funkční ovládací sekvence
-1.2  add. minimalni kilometry na budíku  +úklid a přesnější kalibrace na fichtl stupnici
-		max. 103, min 4km
+Sketch uses 29880 bytes (92%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1272 bytes (62%) of dynamic memory, leaving 776 bytes for local variables. 
+
+1.62	LIMIT_STUPNICE = nad kolik km/h už ručička nemá zobrazovat, aby nejezdila přes OLED.
+
+1.61	Uklid na LCD, počítáme s výřezem pro OLED dle UniFacePCB
+	Nad nejakou hodnotu km/h se zobrazuje na OLEDu rychlost velkými čislicemi a skryje se ODO.
+
+1.6	Zachování RAM po resetu: TRIP metr a TOPSPEED zůstává, 
+	kontrola validity magic number, 
+	nový TOP speed údaj
+	po resetu se nezobrazuje welcome logo
+
+1.51	bugfix jsmevpohybu, MAX_SKOK_KMH = 120.0: test jestli to naváže i po resetu za jízdy
+
+1.5	oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
+	jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
+	oživí čtení rychlosti taky v případě resetu budíku za jízdy. PODLE MultiGauge 1.5
+
 1.3   Harmonizace s poslední verzí multigauge V1.4
 	Watchdog od začátku setupu,
 	I2C BusClear defibrilátor na začátku
@@ -17,21 +34,15 @@ Stadi AnaloGauge X27
 	přečíslování odstavců aby to sedělo s multigaugem
 		Sketch uses 23512 bytes (72%) of program storage space. Maximum is 32384 bytes.
 		Global variables use 1267 bytes (61%) of dynamic memory, leaving 781 bytes for local variables.
-1.5	oprava logiky sběru pulzů speeda - započítávají se všechny pulzy včetně invalidovaných. 
-	jinak se stávalo, že se občas při akceleraci speedo zasekne na 10 nebo 16 km/h a za jízdy zůstane, až do zastavení.
-	oživí čtení rychlosti taky v případě resetu budíku za jízdy. PODLE MultiGauge 1.5
-1.51	bugfix jsmevpohybu, MAX_SKOK_KMH = 120.0: test jestli to naváže i po resetu za jízdy
 
-1.6	Zachování RAM po resetu: TRIP metr a TOPSPEED zůstává, 
-	kontrola validity magic number, 
-	nový TOP speed údaj
-	po resetu se nezobrazuje welcome logo
-1.61	Uklid na LCD, počítáme s výřezem pro OLED dle UniFacePCB
-	Nad nejakou hodnotu km/h se zobrazuje na OLEDu rychlost velkými čislicemi a skryje se ODO.
+1.2  add. minimalni kilometry na budíku  +úklid a přesnější kalibrace na fichtl stupnici
+		max. 103, min 4km
 
-1.62	LIMIT_STUPNICE = nad kolik km/h už ručička nemá zobrazovat, aby nejezdila přes OLED.
+1.1  kalibrace krokáče, funkční ovládací sekvence
 
-
+1.0 initial
+		Sketch uses 22904 bytes (70%) of program storage space. Maximum is 32384 bytes.
+		Global variables use 1298 bytes (63%) of dynamic memory, leaving 750 bytes for local variables.
 
 _______________
 

@@ -1,6 +1,7 @@
-
 #include <Arduino.h>
-#include <Wire.h>
+#include <Wire.h>  // upravena s timeoutem
+//  je potreba mit zapnuty #define WIRE_TIMEOUT
+//  v C:\Users\**\AppData\Local\Arduino15\packages\MiniCore\hardware\avr\3.1.3\libraries\Wire\src\Wire_timeout.h
 #include "U8g2lib.h"
 #include <EEPROM.h>
 #include <avr/wdt.h>
@@ -9,18 +10,19 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "AnaloGauge X27 V1.62";
+const char FW_VERZE[] = "AnaloGauge X27 V2.0";
 
 //  Speedo furt čte kolo na D2. = KM/H
-//  Tacho navíc čte otáčky motoru na D3 = RPM (zpracovává se
-//  na pozadí, i když ho teď nikde nezobrazujeme - ať je hotový
-//  pro budoucí druhou ručičku).
+//  Tacho funkce se nepoužívá, ale lze v budoucnu zapnout
 //
 //  RYCHLOST se ukazuje analogově přes krokový motorek
-//  X27 168, co hejbe ručičkou na stupnici.
+//  X27 168. Od nějaké rychlosti pouze digitálně na displej.
 //
-//  Malý OLED (128x32) ukazuje jen: km/h textem (diagnostický/
-//  kontrolní údaj), ODO (v EEPROM) a TRIP (v RAM).
+//  Malý OLED (128x32) ukazuje km/h, ODO (v EEPROM), MAX SPEED a TRIP (v RAM).
+//
+//  Ochrana proti rušení, falešným pulzům, zamrznutí procesoru, rozbití I2C komunikace, 
+//  Ochrana EEPROM proti korupci, obnovení dat z RAM po resetu
+//  DEBUG_MODE: čítače I2C / resetů / EEPROM-napětí + Vcc přímo na displeji.
 // ============================================================
 
 // 1)  NASTAVENÍ
@@ -33,8 +35,9 @@ const char FW_VERZE[] = "AnaloGauge X27 V1.62";
 // 7)  FILTR SPEEDA
 // 8)  FILTR TACHA
 // 8B) X27 168 - RUČIČKA SPEEDA
-// 8C) HEARTBEAT LED (diagnostika, D13)
-// 9)  ÚVODNÍ LOGO
+// 9A) HEARTBEAT LED (diagnostika, D13)
+// 9B) ÚVODNÍ LOGO
+// 9C) I2C FIX / BUS CLEAR (HAJZLZVON)
 // 10) HLAVNÍ SMYČKA - SETUP
 // 11) ZPRACOVÁNÍ SPEEDA
 // 12) ZPRACOVÁNÍ TACHA
@@ -48,22 +51,26 @@ const char FW_VERZE[] = "AnaloGauge X27 V1.62";
 // ============================================================
 
 // --- OLED init ---
-//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);//Klasika 0.96"
-//U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Laskakit 1.3"
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
 
 // --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
 #define TEST_MULTIPLIER 1
 
-// --- Zapnout / Vypnout TACHO funkci ---
-//#define TACHO
+// --- DEBUG: čítače závad a Vcc na displeji (pro finální provoz zakomentuj) ---
+#define DEBUG_MODE
+
+
+// --- BUDÍK: VYBER TYP STUPNICE ---
+#define STADION_BUDIK
+//#define FICHTL_BUDIK
+
+// Obvod kola v metrech. = vzdálenost per pulz
+//const float OBVOD_KOLA_M = 1.74;  //16" kolo, guma terénní 16x2.75 FICHTL / SIMSON
+const float OBVOD_KOLA_M = 1.86;    //19" kolo, guma 19x2.25 STADION
+
 
 // --- SPEEDO snímač kola (INT0) ---
 const byte SENSOR_PIN = 2;
-
-// Obvod kola v metrech. = vzdálenost per pulz
-//const float OBVOD_KOLA_M = 1.74; //16" kolo, guma terénní 16x2.75 simson
-const float OBVOD_KOLA_M = 1.86; //19" kolo, guma 19x2.25 stadion
 
 // --- SPEEDO tuning ---
 const unsigned long MIN_MEZERA_PULZU_US = 45000UL; // do 120 km/h. Rychlejší pulz ignorujem.
@@ -73,6 +80,10 @@ const float MAX_ROZDIL_SOUSEDNICH_PULZU_KMH = 8.0;
 const unsigned long CAS_DO_ZASTAVENI_MS = 2000UL;
 const float KALMAN_Q = 0.5;
 const float KALMAN_R = 8.0;
+
+
+// --- TACHO funkce Zapnout / Vypnout ---
+//#define TACHO
 
 // --- TACHO snímač motor rpm (INT1) ---
 const byte TACHO_PIN = 3;
@@ -104,8 +115,7 @@ const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 
 // --- DISPLEJ ---
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
-const uint16_t PRAH_RYCHLOSTI = 50;   // kdy se displej přepne na velké číslo km/h
-
+const unsigned long I2C_TIMEOUT_US = 10000UL;  // max čekání na jednu I2C operaci (10 ms)
 
 // ============================================================
 // 1B) NASTAVENÍ X27 168 - RUČIČKA SPEEDA
@@ -116,15 +126,24 @@ const byte X27_B = 4;
 const byte X27_C = A1;
 const byte X27_D = 5;
 
-// Kolik kroků odpovídá CELÉMU rozsahu ručičky (0 až max)
-const int X27_KROKU_CELKEM = 159*4;  //  *4 bo jeden krok je sekvence 4 kliků
+// Kolik kroků odpovídá CELÉMU rozsahu krokouše (0 až max)
+const int X27_KROKU_CELKEM = 159*4;    // *4 bo jeden krok je sekvence 4 kliků
 
-const float X27_MIN_KMH = 4.0;       //  km/h, kdy ručička opustí doraz
-//const float X27_MAX_KMH = 103.0;   //  103 Fichtl budík.
-const float X27_MAX_KMH = 83.0;      //  83 Stadion budík.
+#if defined(STADION_BUDIK)             // STADION
+  const float X27_MIN_KMH = 4.0;       //   km/h, kdy ručička opustí doraz
+  const float X27_MAX_KMH = 83.0;      //   Konec rozsahu ručičky
+  const float LIMIT_STUPNICE = 60.0;   //   MAX rozsah stupnice Stadion
+  const uint16_t PRAH_RYCHLOSTI = 50;  //   Od kolika zobrazujem na displeji velké km/h
+  
+#elif defined(FICHTL_BUDIK)            // FICHTL
+  const float X27_MIN_KMH = 4.0;       //   km/h, kdy ručička opustí doraz
+  const float X27_MAX_KMH = 103.0;     //   Konec rozsahu ručičky
+  const float LIMIT_STUPNICE = 75.0;   //   MAX rozsah stupnice Fichtl 80
+  const uint16_t PRAH_RYCHLOSTI = 60;  //   Od kolika zobrazujem na displeji velké km/h
+#else
+  #error "Vyber budík: odkomentuj STADION_BUDIK nebo FICHTL_BUDIK"
+#endif
 
-//const float LIMIT_STUPNICE = 80.0; //  MAX rozsah stupnice Fichtl 80
-const float LIMIT_STUPNICE = 65.0;   //  MAX rozsah stupnice Stadion
 
 // Minimální doba mezi kroky  aka rychlost pohybu
 const unsigned long X27_MIN_KROK_US = 2000UL;
@@ -173,8 +192,10 @@ bool motorBezi = false;
 // -- EEPROM housekeeping --
 int odoAdresaAktualni = ODO_ADR_START;
 unsigned long odoNaposledyUlozeno = 0;
+long posledniZmereneVccMv = 0; // v mV, např. 4200 = 4.2V, 0 = ještě se neměřilo
+bool nizkeNapeti = false;      // hnědý poplach: zápis ODO odmítnut kvůli nízkému Vcc (tečka na displeji)
 
-// -- Časování displeja --
+// -- Časování displeje --
 unsigned long displejNaposledyCas = 0;
 
 // -- Sdílené se speedo ISR --
@@ -194,6 +215,13 @@ unsigned long x27PoslednKrokUs = 0;
 
 // -- Heartbeat LED (diagnostika, D13) --
 volatile uint8_t heartbeatPocitadloPreruseni = 0;
+
+// -- DEBUG MODE: počítadla přežívají reset (.noinit) --
+#ifdef DEBUG_MODE
+unsigned long i2cTimeoutPocet __attribute__((section(".noinit")));    // I2C timeouty zotavené bez resetu
+unsigned int resetPocet __attribute__((section(".noinit")));          // resety za provozu (RAM přežila)
+unsigned long eepromNapetiPocet __attribute__((section(".noinit")));  // pokusy o zápis ODO odmítnuté kvůli nízkému Vcc
+#endif
 
 // ============================================================
 // 3) MĚŘENÍ NAPÁJENÍ (Vcc)
@@ -241,8 +269,13 @@ void nactiOdoZEEPROM()
 bool ulozOdoDoEEPROM(unsigned long hodnotaMetru)
 {
 #if KONTROLA_NAPETI_ZAPNUTA
-  if (nactiNapetiVcc() < MIN_VCC_PRO_ZAPIS_MV)
-  {return false;}
+  posledniZmereneVccMv = nactiNapetiVcc();   // změřit jednou, uložit, použít i na displeji
+  if (posledniZmereneVccMv < MIN_VCC_PRO_ZAPIS_MV)
+  { nizkeNapeti = true;                      // hnědý poplach -> tečka na displeji
+#ifdef DEBUG_MODE
+    eepromNapetiPocet++;                     // zápis odmítnut kvůli napětí
+#endif
+    return false; }
 #endif
   odoAdresaAktualni += 4;
   if (odoAdresaAktualni > ODO_ADR_KONEC)
@@ -488,7 +521,7 @@ void aktualizujRucicku()
 }
 
 // ============================================================
-// 8C) HEARTBEAT LED (diagnostika, D13)
+// 9A) HEARTBEAT LED (diagnostika, D13)
 // ============================================================
 
 // Timer2 v CTC módu, prescaler 1024 -> jeden "tik" cca 16 ms.
@@ -521,7 +554,7 @@ ISR(TIMER2_COMPA_vect)
 }
 
 // ============================================================
-// 9) ÚVODNÍ LOGO
+// 9B) ÚVODNÍ LOGO
 // ============================================================
 
 void zobrazUvodniLogo()
@@ -536,9 +569,12 @@ void zobrazUvodniLogo()
   u8g2.clearBuffer();
   u8g2.drawXBMP(x, y, STADION_WIDTH, STADION_HEIGHT, logo_stadion);
 
-  u8g2.setFont(u8g2_font_5x7_tf);
+  u8g2.setFont(u8g2_font_5x7_tr);
   u8g2.setCursor(15, 28);
   u8g2.print(FW_VERZE);
+#ifdef DEBUG_MODE
+  u8g2.print(F(" D"));   // debug build
+#endif
 
   u8g2.sendBuffer();
 
@@ -557,36 +593,26 @@ void zobrazUvodniLogo()
 }
 
 // ============================================================
-// 10) HLAVNÍ SMYČKA - SETUP
+// 9C) I2C FIX / BUS CLEAR (HAJZLZVON)
 // ============================================================
 
-void setup()
+// Pokud displej drží SDA dole (zaseklý uprostřed bajtu), vyklepe se
+// ručně 9 hodinovými pulzy a STOP podmínkou. Funguje jen když TWI
+// hardware nedrží piny (před Wire.begin() nebo po Wire.end()).
+void i2cBusClearPokudJeZaseknuto()
 {
-  // Některé bootloadery nechávaj watchdog po resetu běžet.
-  wdt_disable();
-
-  // Benevolentní watchdog už od úplného začátku setup() -
-  // 8 s je hardwarový strop AVR 
-  wdt_enable(WDTO_8S);
-
-  // === I2C BUS CLEAR ===
-  // Pokud vyhnilo I2C, preventivně vyčistíme sběrnici ručním bit-bang defibrilátorem.
-
   pinMode(SDA, INPUT_PULLUP);
   pinMode(SCL, INPUT_PULLUP);
   delayMicroseconds(10);
 
   bool byloZaseknute = (digitalRead(SDA) == LOW);
-
   if (byloZaseknute) {
-
     // 9 hodinových pulzů
     for (int i = 0; i < 9; i++) {
       if (digitalRead(SDA) == HIGH) break; // Displej už pustil SDA
       pinMode(SCL, OUTPUT);
       digitalWrite(SCL, LOW);
       delayMicroseconds(5);
-
       pinMode(SCL, INPUT_PULLUP);
       delayMicroseconds(5);
     }
@@ -595,23 +621,63 @@ void setup()
     pinMode(SCL, OUTPUT);
     digitalWrite(SCL, LOW);       // SCL = LOW
     delayMicroseconds(5);
-
     pinMode(SDA, OUTPUT);
     digitalWrite(SDA, LOW);       // SDA = LOW
     delayMicroseconds(5);
-
     pinMode(SCL, INPUT_PULLUP);   // SCL jde HIGH
     delayMicroseconds(5);
-
     pinMode(SDA, INPUT_PULLUP);   // SDA LOW->HIGH při SCL=HIGH = STOP
     delayMicroseconds(5);
   }
 
-  // Obnovení běžného I2C režimu
+  // Návrat do běžného I2C režimu
   pinMode(SDA, INPUT_PULLUP);
   pinMode(SCL, INPUT_PULLUP);
+}
 
-  u8g2.begin();
+// Start I2C od nuly: uvolnit piny, vyklepat sběrnici, nahodit Wire s timeoutem a displej.
+// Volá se při startu i po timeoutu za běhu.
+void i2cStart()
+{
+  Wire.end();                                  // bez tohohle bit-bang na pinech nic nehne
+  i2cBusClearPokudJeZaseknuto();
+  Wire.setWireTimeout(I2C_TIMEOUT_US, true);   // při timeoutu resetni TWI hardware
+  u8g2.begin();                                // Wire.begin() + init displeje
+  Wire.clearWireTimeoutFlag();                 // begin() na mrtvém displeji mohl nastavit flag
+}
+
+// Překreslí displej a když při tom vypršel I2C timeout, obnoví sběrnici i displej.
+void vykresliDashboardBezpecne()
+{
+  vykresliDashboard();
+
+  if (Wire.getWireTimeoutFlag())
+  {
+#ifdef DEBUG_MODE
+    i2cTimeoutPocet++;
+#endif
+    i2cStart();
+  }
+}
+
+// ============================================================
+// 10) HLAVNÍ SMYČKA - SETUP
+// ============================================================
+
+void setup()
+{
+  // Po resetu watchdogem by mohl zůstat běžet s krátkým limitem.
+  MCUSR = 0;
+
+  // Některé bootloadery nechávaj watchdog po resetu běžet.
+  wdt_disable();
+
+  // Benevolentní watchdog už od úplného začátku setup() -
+  // 8 s je hardwarový strop AVR 
+  wdt_enable(WDTO_8S);
+
+  // I2C: bus clear + Wire s timeoutem + displej (viz sekce 9B)
+  i2cStart();
 
   // Speedo: D2 / INT0.
   pinMode(SENSOR_PIN, INPUT_PULLUP);
@@ -637,6 +703,17 @@ void setup()
     
   zobrazUvodniLogo();     // logo jen při studeném startu
   }
+
+  // DEBUG MODE: počítadla jsou v .noinit -> po studeném startu vynulovat,
+  // jinak (RAM přežila) byl tohle reset za provozu.
+#ifdef DEBUG_MODE
+  if (studenyStart)
+  { resetPocet = 0;
+    i2cTimeoutPocet = 0;
+    eepromNapetiPocet = 0; }
+  else
+  { resetPocet++; }
+#endif
 
   nastavHeartbeatTimer();
 
@@ -864,7 +941,7 @@ void loop()
   if (ted - displejNaposledyCas >
       DISPLEJ_INTERVAL_MS)
   {
-    vykresliDashboard();
+    vykresliDashboardBezpecne();
     displejNaposledyCas = ted;
   }
 }
@@ -892,10 +969,8 @@ void vykresliDashboard()
   //u8g2.setFont(u8g2_font_9x15B_tf);
   //u8g2.setFont(u8g2_font_10x20_tf);
   //u8g2.setFont(u8g2_font_VCR_OSD_tu);  //deprecated
-  
   //u8g2.setFont(u8g2_font_logisoso16_tn); //hezke.  moc vysoke na origo fichtl face
   u8g2.setFont(u8g2_font_crox4h_tn);  //výška 21, álá helvetica (setcursor 0,14)
-
 
   
   // -- Řádek 1: ODO --
@@ -906,7 +981,6 @@ void vykresliDashboard()
 
 
   // -- TRIP (zarovnaný vpravo) --
-
   float tripKm = tripMetry / 1000.0;
   char cisloTripu[12];
   dtostrf(tripKm, 1, 1, cisloTripu);          // min. šířka 1 = žádné mezery na začátku
@@ -916,8 +990,7 @@ void vykresliDashboard()
 
 
   // -- VELKA RYCHLOST nad xx km/h --
- //u8g2.setFont(u8g2_font_crox5hb_tn);  //výška 29, álá helvetica (setcursor 35,17)
- u8g2.setFont(u8g2_font_logisoso32_tf);
+ u8g2.setFont(u8g2_font_logisoso32_tn);
   if (testRychlost >= PRAH_RYCHLOSTI){
  char radekRychlost[16];
   snprintf(radekRychlost, sizeof(radekRychlost), "%u", testRychlost);
@@ -941,12 +1014,36 @@ void vykresliDashboard()
   u8g2.setCursor(43, 32);
   u8g2.print(radekRychlost);}
 
-// -- Řádek 2: TOP speed --
+  // -- Řádek 2: TOP speed --
     if (testRychlost == 0 && topRychlostKmh !=0){
-    u8g2.drawXBMP(50, 25, 5, 8, IKONA_TOP);// (šipka nahoru; x,y,w,h)
+    u8g2.drawXBMP(50, 25, 5, 7, IKONA_TOP);// (šipka nahoru; x,y,w,h)
     u8g2.setCursor(60,32);
     u8g2.print(topRychlostKmh * TEST_MULTIPLIER);}
-  
+
+
+  // -- Hnědý poplach: tečka v rohu po odmítnutém zápisu ODO (nízké Vcc) --
+  if (nizkeNapeti)
+  { u8g2.drawBox(0, 0, 1, 1); }
+
+
+  // -- DEBUG: počítadla závad + Vcc (jen při pomalé jízdě, jinak by to kreslilo přes velké číslo) --
+  #ifdef DEBUG_MODE
+  if (testRychlost < PRAH_RYCHLOSTI &&
+    (i2cTimeoutPocet > 0 || resetPocet > 0 || eepromNapetiPocet > 0))
+  {
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.setCursor(0, 23);
+    u8g2.print(F("I2C")); u8g2.print(i2cTimeoutPocet);   // timeouty zotavené bez resetu
+    u8g2.print(F(" R"));  u8g2.print(resetPocet);         // resety za provozu
+    u8g2.print(F(" E"));  u8g2.print(eepromNapetiPocet);  // pokusy o zápis ODO odmítnuté kvůli Vcc
+    if (posledniZmereneVccMv > 0)                         // Vcc z posledního pokusu o zápis
+    { u8g2.print(F(" "));
+      u8g2.print(posledniZmereneVccMv / 1000);
+      u8g2.print(F("."));
+      u8g2.print((posledniZmereneVccMv % 1000) / 100);
+      u8g2.print(F("V")); }
+  }
+#endif
 
 
   u8g2.sendBuffer();
