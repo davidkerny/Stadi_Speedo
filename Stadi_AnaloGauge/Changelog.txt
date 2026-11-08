@@ -1,5 +1,11 @@
 Stadi AnaloGauge X27
+2.2	- Vypínatelná kalibrace ručičky i po resetu
+	- pozice ručičky přežívá reset
+	- po resetu se ihned kreslí oled i během kalibrace ručičky
+	- úspornější fonty kvůli nedostatku flash
 
+Sketch uses 27394 bytes (84%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1272 bytes (62%) of dynamic memory, leaving 776 bytes for local var
 
 2.0	I2C BUS FIX!! upravena wire knihovna s timeoutem. Zaseklé I2C se obnoví bez WDT resetu
 	Debug mode, zobrazuěm I2C errors, resety a eeprom vyhnědnutí.
