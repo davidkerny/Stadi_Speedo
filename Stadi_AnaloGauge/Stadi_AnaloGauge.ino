@@ -10,7 +10,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "AnaloGauge X27 V2.0";
+const char FW_VERZE[] = "AnaloGauge X27 V2.2";
 
 //  Speedo furt čte kolo na D2. = KM/H
 //  Tacho funkce se nepoužívá, ale lze v budoucnu zapnout
@@ -22,6 +22,7 @@ const char FW_VERZE[] = "AnaloGauge X27 V2.0";
 //
 //  Ochrana proti rušení, falešným pulzům, zamrznutí procesoru, rozbití I2C komunikace, 
 //  Ochrana EEPROM proti korupci, obnovení dat z RAM po resetu
+//  Po restartu za jízdy se displej kreslí hned, ručka se kalibruje jen když KALIBRACE_PO_RESETU.
 //  DEBUG_MODE: čítače I2C / resetů / EEPROM-napětí + Vcc přímo na displeji.
 // ============================================================
 
@@ -50,13 +51,13 @@ const char FW_VERZE[] = "AnaloGauge X27 V2.0";
 // 1) NASTAVENÍ
 // ============================================================
 
-// --- OLED init ---
-U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); //Placatej zmrd 0.91"
-
-// --- TESTOVACÍ NÁSOBIČ (pro finální provoz změň na 1) ---
+// --- TESTOVACÍ NÁSOBIČ (běžný provoz = 1) ---
 #define TEST_MULTIPLIER 1
 
-// --- DEBUG: čítače závad a Vcc na displeji (pro finální provoz zakomentuj) ---
+// --- TEST STUPNICE: zobrazit pevnou hodnotu pro test ---
+//#define TEST_RUCICKA_KMH 60
+
+// --- DEBUG: zobrazit čítače závad a Vcc ---
 #define DEBUG_MODE
 
 
@@ -114,6 +115,7 @@ const unsigned long ODO_MAX_SKOK_MEZI_BUNKAMI_M = 1000000UL;
 const long MIN_VCC_PRO_ZAPIS_MV = 3400L;
 
 // --- DISPLEJ ---
+U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); // OLED Init: Placatej zmrd 0.91"
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
 const unsigned long I2C_TIMEOUT_US = 10000UL;  // max čekání na jednu I2C operaci (10 ms)
 
@@ -133,23 +135,24 @@ const int X27_KROKU_CELKEM = 159*4;    // *4 bo jeden krok je sekvence 4 kliků
   const float X27_MIN_KMH = 4.0;       //   km/h, kdy ručička opustí doraz
   const float X27_MAX_KMH = 83.0;      //   Konec rozsahu ručičky
   const float LIMIT_STUPNICE = 60.0;   //   MAX rozsah stupnice Stadion
-  const uint16_t PRAH_RYCHLOSTI = 50;  //   Od kolika zobrazujem na displeji velké km/h
+  const uint16_t PRAH_RYCHLOSTI = 30;  //   Od kolika zobrazujem na displeji velké km/h
   
 #elif defined(FICHTL_BUDIK)            // FICHTL
   const float X27_MIN_KMH = 4.0;       //   km/h, kdy ručička opustí doraz
   const float X27_MAX_KMH = 103.0;     //   Konec rozsahu ručičky
   const float LIMIT_STUPNICE = 75.0;   //   MAX rozsah stupnice Fichtl 80
-  const uint16_t PRAH_RYCHLOSTI = 60;  //   Od kolika zobrazujem na displeji velké km/h
+  const uint16_t PRAH_RYCHLOSTI = 30;  //   Od kolika zobrazujem na displeji velké km/h
 #else
   #error "Vyber budík: odkomentuj STADION_BUDIK nebo FICHTL_BUDIK"
 #endif
 
-
-// Minimální doba mezi kroky  aka rychlost pohybu
+// Minimální doba mezi kroky aka rychlost pohybu
 const unsigned long X27_MIN_KROK_US = 2000UL;
 const unsigned long X27_HOMING_KROK_US = 1500UL;  // puvodne 1300. Pomalejsi kvuli line rucicce s feritama
 
 const bool X27_OBRACENY_SMER = 1;
+
+const bool KALIBRACE_PO_RESETU = false; // Kalibrovat ručičku jen po zapnutí nebo i po resetu za jízdy?
 
 // ============================================================
 // 2) STAV PROGRAMU
@@ -209,7 +212,7 @@ volatile unsigned long tachoIsrDelkaPoslednihoIntervaluUs = 0;
 volatile bool tachoIsrMameNovyPulz = false;
 
 // -- X27 ručička speeda --
-long x27AktualniKrok = 0;   // kde ručička skutečně je (v krocích od nuly)
+long x27AktualniKrok __attribute__((section(".noinit")));  // kde ručička skutečně je (v krocích od nuly); přežije reset, ať víme, kde ručka vězí
 long x27CilovyKrok = 0;     // kam se má dojet
 unsigned long x27PoslednKrokUs = 0;
 
@@ -676,7 +679,7 @@ void setup()
   // 8 s je hardwarový strop AVR 
   wdt_enable(WDTO_8S);
 
-  // I2C: bus clear + Wire s timeoutem + displej (viz sekce 9B)
+  // I2C: bus clear + Wire s timeoutem + displej (viz sekce 9C)
   i2cStart();
 
   // Speedo: D2 / INT0.
@@ -717,10 +720,21 @@ void setup()
 
   nastavHeartbeatTimer();
 
-  HomingRucicky();
-
-  nactiOdoZEEPROM();
+ 
+  nactiOdoZEEPROM();  // ODO načíst DŘÍV než kalibrace ručky, ať je co kreslit.
   odoNaposledyUlozeno = odoMetry;
+
+  // Restart za jízdy (RAM přežila): hned vykreslit displej
+  if (!studenyStart)
+  { vykresliDashboard(); }
+
+  // Kalibrace ručky: studený start vždycky, po resetu vypnutelné
+  bool poziceOk = (x27AktualniKrok >= 0 && x27AktualniKrok <= X27_KROKU_CELKEM);
+  if (studenyStart || KALIBRACE_PO_RESETU || !poziceOk)
+  { x27AktualniKrok = 0;
+    HomingRucicky(); }
+  else
+  { provedKrokX27(x27AktualniKrok); }   // jen znovu pustit proud do cívek, ať ručku drží
 
   // Přerušení pro kolo.
   attachInterrupt(
@@ -778,9 +792,12 @@ void zpracujNovySpeedoPulzPokudExistuje()
   mamePredchoziPulz = true;
 
   if (!duveryhodny)
-  {
-    return;
-  }
+  { return;}
+
+    // První pulz po stání/resetu: filtr rovnou na změřenou hodnotu (žádný rozběh od nuly).
+  if (!jsmeVPohybu)
+  { kalman_x = surovaRychlostKmh;
+    kalman_p = 1.0; }
 
   jsmeVPohybu = true;
 
@@ -798,24 +815,18 @@ void zpracujNovySpeedoPulzPokudExistuje()
   zbytekMetruAkumulator += OBVOD_KOLA_M;
 
   if (zbytekMetruAkumulator >= 1.0)
-  {
-    unsigned long celeMetry =
+  {    unsigned long celeMetry =
       (unsigned long)zbytekMetruAkumulator;
 
     odoMetry += celeMetry;
     tripMetry += celeMetry;
 
-    zbytekMetruAkumulator -= celeMetry;
-  }
+    zbytekMetruAkumulator -= celeMetry;}
 
   // EEPROM zápis po 100 m.
   if (odoMetry - odoNaposledyUlozeno >= KROK_ULOZENI_M)
-  {
-    if (ulozOdoDoEEPROM(odoMetry))
-    {
-      odoNaposledyUlozeno = odoMetry;
-    }
-  }
+  {  if (ulozOdoDoEEPROM(odoMetry))
+    {   odoNaposledyUlozeno = odoMetry; } }
 }
 
 // ============================================================
@@ -823,14 +834,9 @@ void zpracujNovySpeedoPulzPokudExistuje()
 // ============================================================
 
 void zpracujNovyTachoPulzPokudExistuje()
-{
-  if (!tachoIsrMameNovyPulz)
-  {
-    return;
-  }
-
+{  if (!tachoIsrMameNovyPulz)
+  {   return;  }
   unsigned long intervalUs;
-
   noInterrupts();
   intervalUs = tachoIsrDelkaPoslednihoIntervaluUs;
   tachoIsrMameNovyPulz = false;
@@ -842,10 +848,8 @@ void zpracujNovyTachoPulzPokudExistuje()
     (60000000.0 / intervalUs) / PULZY_NA_OTACKU;
 
   if (!jePulzTachaDuveryhodny(suroveRpm))
-  {
-    tachoMamePredchoziPulz = false;
-    return;
-  }
+  {    tachoMamePredchoziPulz = false;
+    return; }
 
   tachoMamePredchoziPulz = true;
   posledniSuroveRpm = suroveRpm;
@@ -854,36 +858,28 @@ void zpracujNovyTachoPulzPokudExistuje()
   float vyhlazeneRpm = vyhladRpm(suroveRpm);
 
   zobrazeneRpm =
-    (unsigned int)(vyhlazeneRpm + 0.5);
-}
+    (unsigned int)(vyhlazeneRpm + 0.5);}
 
 // ============================================================
 // 13) KONTROLA ZASTAVENÍ SPEEDA
 // ============================================================
 
 void zkontrolujJestliStojimeSpeedo()
-{
-  unsigned long casPoslednihoPulzu;
-
+{ unsigned long casPoslednihoPulzu;
   noInterrupts();
   casPoslednihoPulzu = speedoIsrCasPoslednihoPulzuUs;
   interrupts();
-
   bool jsmeUzNekdyJeli =
     (casPoslednihoPulzu != 0);
-
   unsigned long dobaBezPulzuUs =
     micros() - casPoslednihoPulzu;
-
   if (jsmeUzNekdyJeli &&
       dobaBezPulzuUs > CAS_DO_ZASTAVENI_MS * 1000UL)
-  {
-    kalman_x = 0;
+  { kalman_x = 0;
     kalman_p = 1;
     zobrazenaRychlostKmh = 0;
     mamePredchoziPulz = false;
-    jsmeVPohybu = false;
-  }
+    jsmeVPohybu = false;}
 }
 
 // ============================================================
@@ -891,30 +887,23 @@ void zkontrolujJestliStojimeSpeedo()
 // ============================================================
 
 void zkontrolujJestliStojimeTacho()
-{
-  unsigned long casPoslednihoPulzu;
-
+{ unsigned long casPoslednihoPulzu;
   noInterrupts();
   casPoslednihoPulzu =
     tachoIsrCasPoslednihoPulzuUs;
   interrupts();
-
   bool mameAsponJedenPulz =
     (casPoslednihoPulzu != 0);
-
   unsigned long dobaBezPulzuUs =
     micros() - casPoslednihoPulzu;
-
   if (mameAsponJedenPulz &&
       dobaBezPulzuUs >
         CAS_DO_ZASTAVENI_TACHO_MS * 1000UL)
-  {
-    tachoKalman_x = 0;
+  { tachoKalman_x = 0;
     tachoKalman_p = 1;
     zobrazeneRpm = 0;
     tachoMamePredchoziPulz = false;
-    motorBezi = false;
-  }
+    motorBezi = false; }
 }
 
 // ============================================================
@@ -923,7 +912,7 @@ void zkontrolujJestliStojimeTacho()
 
 void loop()
 {
-  // Watchdog krmíme pravidelně, jinak MCU udělá reset.
+  // Kost pro WatchDoga
   wdt_reset();
 
   zpracujNovySpeedoPulzPokudExistuje();
@@ -937,13 +926,10 @@ void loop()
   aktualizujRucicku();
 
   unsigned long ted = millis();
-
   if (ted - displejNaposledyCas >
       DISPLEJ_INTERVAL_MS)
-  {
-    vykresliDashboardBezpecne();
-    displejNaposledyCas = ted;
-  }
+  { vykresliDashboardBezpecne();
+    displejNaposledyCas = ted; }
 }
 
 // ============================================================
@@ -957,8 +943,11 @@ const uint8_t IKONA_TOP[] PROGMEM = {
 
 void vykresliDashboard()
 {
-  // Aplikace násobiče pro testovací účely - škáluje jak OLED tak ručičku
+  // Aplikace TEST násobiče - škáluje OLED i ručičku
   unsigned int testRychlost = zobrazenaRychlostKmh * TEST_MULTIPLIER;
+#ifdef TEST_RUCICKA_KMH
+  testRychlost = TEST_RUCICKA_KMH;   // kalibrace stupnice: ručka i displej drží pevnou hodnotu
+#endif
 
   // Ručička dostává cíl při každém překreslení displeje
   // (10x za vteřinu) - samotný pohyb je pak plynulý a
@@ -998,7 +987,7 @@ void vykresliDashboard()
     else {u8g2.setCursor(43, 32);}
   u8g2.print(radekRychlost);}
 
- u8g2.setFont(u8g2_font_6x10_tf);
+ u8g2.setFont(u8g2_font_6x10_tr);
 
    // -- VELKA RYCHLOST: maly popisek km/h --
   if (testRychlost != 0 && testRychlost >= PRAH_RYCHLOSTI){
@@ -1031,8 +1020,8 @@ void vykresliDashboard()
   if (testRychlost < PRAH_RYCHLOSTI &&
     (i2cTimeoutPocet > 0 || resetPocet > 0 || eepromNapetiPocet > 0))
   {
-    u8g2.setFont(u8g2_font_5x7_tf);
-    u8g2.setCursor(0, 23);
+    u8g2.setFont(u8g2_font_5x7_tr);
+    u8g2.setCursor(0, 24);
     u8g2.print(F("I2C")); u8g2.print(i2cTimeoutPocet);   // timeouty zotavené bez resetu
     u8g2.print(F(" R"));  u8g2.print(resetPocet);         // resety za provozu
     u8g2.print(F(" E"));  u8g2.print(eepromNapetiPocet);  // pokusy o zápis ODO odmítnuté kvůli Vcc
