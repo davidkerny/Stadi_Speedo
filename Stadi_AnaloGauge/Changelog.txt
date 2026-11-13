@@ -1,4 +1,42 @@
 Stadi AnaloGauge X27
+3.0	RUČIČKA:
+	- jede z přerušení Timeru1 se zrychlením/brzděním, kreslení OLEDu ani zaseklé I2C ji nezastaví
+	- X27 řízení 6 stavů (1/3°) místo 4 stavů. Cívky X27 svírají 60°, 4 stavy dávaly nerovnoměrné kroky.
+	  !! X27_KROKU_CELKEM = 159*6 (stejný úhel jako dřív 159*4). Stepper_Tester a Stupnice_Test jsou pořád 4-stavové.
+	- cíl ručičky plynule z nezaokrouhlené rychlosti (dřív skákala po celých km/h = 4° skoky)
+	RYCHLOST:
+	- mezi pulzy se rychlost plynule dopočítává (trend + strop "kolo se ještě neotočilo" = obvod / čas)
+	- po zastavení ručka klesá k nule hned, žádné 2 s držení
+	- historie pulzů: jiskra mezi pulzy se zahodí bez rozbití dalšího měření, vynechaný pulz se dopočítá,
+	  falešná stopa na dvojnásobku se sama zruší, nevysvětlitelné pulzy 3x za sebou = nová stopa
+	- rozjezd z klidu až po 3 pravidelných pulzech, na rušené lince po 5 (rušení na stojící motorce ručkou nehýbe)
+	- ISR ověřuje 40 us, že pin fakt drží LOW (jiskra ze zapalování ne), pulzy jdou do fronty
+	- ODO se počítá po otáčkách kola v mm, zahozená jiskra nic nepřičte
+	RESETY:
+	- stav (ODO, TRIP, TOP, rychlost, čítače) ve dvou kopiích v .noinit s CRC + kontrolou rozumnosti.
+	  Rozbitá RAM = studený start, nikdy nesmyslný TRIP.
+	- po resetu za jízdy ručka drží poslední rychlost, než přijdou pulzy (nespadne na nulu)
+	- poloha ručičky s kontrolní kopií, MCUSR se čte hned v .init3 (příčina resetu v debug řádku)
+	- ODO v EEPROM: nový formát od adresy 256, slot = metry + invertovaná kopie (rozepsaný zápis se pozná).
+	  Starý formát se při prvním startu převezme.
+	- jednou za vteřinu znovu nastavit piny, INT0, Timery a OLED (bez vypnutí displeje)
+	- BOD pojistka 2.7 V (efuse 0xF5). 4.3 V je na napájení z magneta moc blízko - čip zůstával viset v resetu.
+	  Zápis ODO jen nad 4.2 V (MIN_VCC_PRO_ZAPIS_MV). "!BOD" v debug řádku jen když je BOD vypnutý / 1.8 V.
+	- #error když Wire nemá zapnutý WIRE_TIMEOUT
+	DEBUG řádky uprostřed (kvůli výřezu ciferníku):
+	  pod ODO (stání / pomalá jízda): R resety se zachovanou RAM, I I2C, E odmítnuté zápisy ODO,
+	     J jiskry v ISR, G zahozené pulzy, M vynechané pulzy, Vcc (měří se každou vteřinu)
+	  dole (jen při stání, místo TOP): poslední příčina resetu + počty z EEPROM:
+	     P napájení, B podpětí, W watchdog, X reset pin, S pád programu
+	     (posledních 16 B EEPROM, přežije vypnutí; ODO má 94 slotů). Příčina i na úvodním logu vlevo dole.
+	     Na desce s velkým kondenzátorem na 5V se vypnutí hlásí jako B (napětí nespadne až na POR).
+	  NULOVÁNÍ: zapnout se sepnutým snímačem kola, držet 3 s, pak do 5 s pustit -> statistika resetů
+	     + čítače R I E J G M na nulu (ODO a TRIP zůstávají). Nepuštěný snímač = nic se nesmaže.
+	DEBUG_SERIAL: výpis každého pulzu na TX 115200 Bd (jen na stůl, málo RAM)
+
+Sketch uses 28904 bytes (89%) of program storage space. Maximum is 32384 bytes.
+Global variables use 1563 bytes (76%) of dynamic memory, leaving 485 bytes for local variables.
+
 2.2	- Vypínatelná kalibrace ručičky i po resetu
 	- pozice ručičky přežívá reset
 	- po resetu se ihned kreslí oled i během kalibrace ručičky
