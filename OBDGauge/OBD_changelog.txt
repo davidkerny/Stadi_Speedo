@@ -1,0 +1,18 @@
+OBDGauge Changelog
+________________________
+
+0.21 I2C timeout 10 ms (jako AnaloGauge) - bez něj se displej SH1106 zasekl hned při startu
+     na příkazu 0xDB a nic se nezobrazilo. Zaseklé I2C = znovu nahodit displej.
+     Při startu se už neposílají precharge/VCOMH (u8g2 init má stejné hodnoty).
+     Ztlumení přes D3: optočlen -> INPUT_PULLUP, aktivní LOW (ověřeno).
+     Noc jen kontrastem 0x00, HLUBOKY_DIM vypnuté (na Laskakit SH1106 zasekává I2C a skoro nedimuje).
+     Kontrola #define WIRE_TIMEOUT v MiniCore Wire (jinak #error).
+
+0.2  4 hodnoty na displeji (2x2): BOOST (MAP-baro, PID 0x87/0x0B + 0x33), COOLANT (0x05),
+     OIL (0x5C nebo mode 22), BATT (0x42).
+     Po startu čte podporované PIDy, co ECU neumí = N/A.
+     Ztlumení displeje: drát na D3 nebo bit z CAN rámce.
+     REZIM_SNIFF: listen-only CAN sniffer na serial (hledání bitu světel).
+     Doplněn chybějící stadionlogo.h.
+
+0.1  jeden PID (coolant), MCP2515 bit-bang
