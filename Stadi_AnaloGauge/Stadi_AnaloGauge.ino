@@ -17,7 +17,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] = "AnaloGauge X27 V3.0";
+const char FW_VERZE[] = "AnaloGauge X27 V3.1";
 
 //  Speedo čte kolo na D2 (INT0) = KM/H, ukazuje ručičkou X27 168
 //  a na malém OLEDu (128x32): km/h, ODO (EEPROM), TRIP a TOP SPEED.
@@ -50,7 +50,7 @@ const char FW_VERZE[] = "AnaloGauge X27 V3.0";
 // 7)  ZPRACOVÁNÍ PULZŮ SPEEDA
 // 8)  ODHAD RYCHLOSTI MEZI PULZY
 // 9)  X27 168 - RUČIČKA SPEEDA (Timer1)
-// 10) HEARTBEAT LED, LOGO, I2C FIX
+// 10) LED SNÍMAČE, LOGO, I2C FIX
 // 10B) TACHO (vypnuté)
 // 10C) NULOVÁNÍ STATISTIKY SNÍMAČEM KOLA
 // 11) SETUP
@@ -98,8 +98,8 @@ const float MAX_ZRYCHLENI_MS2 = 2.5;            // víc moped neumí (ani z kopc
 const float MAX_BRZDENI_MS2 = 6.0;              // tvrdé brzdění bubnovkou
 const float FYZIKA_TOLERANCE = 1.05;            // rezerva +-5 % (čas pulzu je přesný na us, víc netřeba)
 const float FYZIKA_REZERVA_MS = 0.15;           // a ještě pevná rezerva v m/s (hlavně pro malé rychlosti)
-const float INTERVAL_POMER_MIN = 0.6;           // další interval proti předchozímu: zrychlování ...
-const float INTERVAL_POMER_MAX = 1.35;          // ... a zpomalování při rozjezdu (pravidelnost - rušení je nepravidelné)
+const float INTERVAL_POMER_MIN = 0.6;           // při rozjezdu: další interval proti předchozímu, zrychlování ...
+const float INTERVAL_POMER_MAX = 1.35;          // ... a zpomalování (pravidelnost - rušení je nepravidelné)
 const float INTERVAL_POMER_MAX_JIZDA = 1.6;     // za jízdy smí interval narůst víc (brzdění do zastavení)
 const uint8_t ROZJEZD_SHOD_KLID = 1;            // klidná linka: 2 sedící intervaly (3 pulzy) = jedeme
 const uint8_t ROZJEZD_SHOD_RUSENI = 3;          // rušená linka: 4 sedící intervaly (5 pulzů) = jedeme
@@ -110,6 +110,7 @@ const float STARSI_PREDCHUDCE_PENALE = 0.25;    // přeskočit pulz v historii (
 const float VYNECHANY_PENALE = 0.15;            // vysvětlení přes vynechaný pulz musí sedět o kus líp než 1 otáčka
 const float VYNECHANY_OD_MS = 4.0;              // vynechané pulzy hledat až od 14 km/h (pod tím je nejde poznat od brzdění)
 const float NOVA_STOPA_POMER = 1.33;            // 3 nesedící pulzy se stejnou roztečí (+-33 %) = nová stopa
+const float ZLOMEK_STOPY_POMER = 0.7;           // 5 pravidelných pulzů s roztečí pod 70 % stopy = stopa visí na polovině / třetině
 
 // --- SPEEDO: plynulost ---
 const unsigned long CAS_DO_ZASTAVENI_MS = 3000UL; // bez pulzu tak dlouho = stojíme (1.86 m / 3 s = 2.2 km/h)
@@ -159,13 +160,13 @@ const int X27_KROKU_CELKEM = 159*6;
   const float X27_MIN_KMH = 4.0;       //   km/h, kdy ručička opustí doraz
   const float X27_MAX_KMH = 83.0;      //   Konec rozsahu ručičky
   const float LIMIT_STUPNICE = 60.0;   //   MAX rozsah stupnice Stadion
-  const uint16_t PRAH_RYCHLOSTI = 30;  //   Od kolika zobrazujem na displeji velké km/h
+  const uint16_t PRAH_RYCHLOSTI = 5;   //   Od kolika zobrazujem na displeji velké km/h
 
 #elif defined(FICHTL_BUDIK)            // FICHTL
   const float X27_MIN_KMH = 4.0;       //   km/h, kdy ručička opustí doraz
   const float X27_MAX_KMH = 103.0;     //   Konec rozsahu ručičky
   const float LIMIT_STUPNICE = 75.0;   //   MAX rozsah stupnice Fichtl 80
-  const uint16_t PRAH_RYCHLOSTI = 30;  //   Od kolika zobrazujem na displeji velké km/h
+  const uint16_t PRAH_RYCHLOSTI = 5;   //   Od kolika zobrazujem na displeji velké km/h
 #else
   #error "Vyber budík: odkomentuj STADION_BUDIK nebo FICHTL_BUDIK"
 #endif
@@ -211,6 +212,9 @@ uint8_t historieN = 0;
 uint16_t otackaZapocitana = 0;    // poslední otáčka už započtená do ODO
 unsigned long nevysvetlene[2];    // pulzy, které nikam nesedí (rušení, nebo ztracená stopa)
 uint8_t nevysvetleneN = 0;
+const uint8_t SUROVE_DELKA = 5;
+unsigned long surove[SUROVE_DELKA];  // posledních 5 pulzů z fronty, ať už dopadly jakkoli (viz stopaNaZlomku)
+uint8_t suroveN = 0;
 
 unsigned long referenceUs = 0;    // poslední použitý pulz, nebo začátek držení po resetu
 bool jedeme = false;              // rychlost potvrzená, ručka ukazuje
@@ -473,6 +477,8 @@ volatile uint8_t frontaOcas = 0;
 volatile unsigned long isrPosledniPrijataUs = 0;
 volatile bool isrMamePrijatou = false;
 volatile uint16_t isrJiskryPocet = 0;   // hrany zahozené ověřením pinu (rušení)
+const uint8_t LED_PULZ_TIKU = 2;        // jak dlouho LED svítí po pulzu kola (tiky Timeru2 po 16 ms)
+volatile uint8_t ledZbyvaTiku = 0;
 
 void snimacSpeedoPreruseni()
 { unsigned long ted = micros();
@@ -489,6 +495,10 @@ void snimacSpeedoPreruseni()
   { return; }
   isrPosledniPrijataUs = ted;
   isrMamePrijatou = true;
+
+  // LED blikne na každý přijatý pulz kola (zhasíná ji Timer2).
+  digitalWrite(13, HIGH);
+  ledZbyvaTiku = LED_PULZ_TIKU;
 
   uint8_t dalsi = (frontaHlava + 1) & FRONTA_MASKA;
   if (dalsi == frontaOcas) return;  // plná fronta (loop stál) - nejstarší zůstanou
@@ -652,6 +662,47 @@ void zpracujRozjezd(unsigned long t)
   vypisPulz('C', z.interval, z.v, 0);
 }
 
+// Chytit stopu znovu na třech po sobě jdoucích pulzech.
+void chytStopu(unsigned long t0, unsigned long t1, unsigned long t2)
+{ float i1 = (t1 - t0) * 1e-6f;
+  float i2 = (t2 - t1) * 1e-6f;
+  PulzZaznam z;
+  z.nejisty = false;
+  historieN = 0;
+  z.t = t0; z.otacka = otackaZapocitana; z.interval = 0;  z.v = 0;
+  pridejDoHistorie(z);
+  z.t = t1; z.otacka++;  z.interval = i1; z.v = OBVOD_KOLA_M / i1;
+  pridejDoHistorie(z);
+  float v1 = z.v;
+  z.t = t2; z.otacka++;  z.interval = i2; z.v = OBVOD_KOLA_M / i2;
+  pridejDoHistorie(z);
+  zacniJizdu(v1, z);
+  vypisPulz('R', i2, z.v, 1); }
+
+// Stopa může zůstat viset na polovině / třetině skutečné rychlosti: bere
+// každý druhý (třetí) pulz a ty mezi nimi zahazuje jako rušení. Protože
+// se zahozené a přijaté pulzy střídají, tři nevysvětlené za sebou nikdy
+// nepřijdou. Proto se hlídají i surové pulzy: 5 za sebou s pravidelnou
+// roztečí, která je o hodně kratší než interval stopy = kolo se točí
+// rychleji, než si stopa myslí. Rušení takhle pravidelné není.
+bool stopaNaZlomku(unsigned long t)
+{ if (suroveN == SUROVE_DELKA)
+  { for (uint8_t i = 1; i < SUROVE_DELKA; i++) surove[i - 1] = surove[i];
+    suroveN--; }
+  surove[suroveN++] = t;
+  if (!jedeme || suroveN < SUROVE_DELKA) return false;
+
+  unsigned long nejkratsi = 0xFFFFFFFFUL, nejdelsi = 0;
+  for (uint8_t i = 1; i < SUROVE_DELKA; i++)
+  { unsigned long d = surove[i] - surove[i - 1];
+    if (d < nejkratsi) nejkratsi = d;
+    if (d > nejdelsi) nejdelsi = d; }
+  if (nejdelsi > nejkratsi + nejkratsi / 3) return false;        // nepravidelné (+-33 %)
+
+  float interval = (t - surove[0]) * (1e-6f / (SUROVE_DELKA - 1));
+  if (OBVOD_KOLA_M / interval * 3.6f > MAX_ROZUMNA_RYCHLOST_KMH) return false;
+  return interval < ZLOMEK_STOPY_POMER * intervalPosledniS; }
+
 // Pulz, který nikam nesedí. Tři za sebou se stejnou roztečí = stopa ztracená
 // (třeba po resetu), chytit se znovu.
 void zpracujNevysvetleny(unsigned long t)
@@ -664,18 +715,7 @@ void zpracujNevysvetleny(unsigned long t)
     float pomer = i2 / i1;
     if (pomer > 1.0f / NOVA_STOPA_POMER && pomer < NOVA_STOPA_POMER &&
         OBVOD_KOLA_M / i2 * 3.6f <= MAX_ROZUMNA_RYCHLOST_KMH)
-    { PulzZaznam z;
-      z.nejisty = false;
-      historieN = 0;
-      z.t = nevysvetlene[0]; z.otacka = otackaZapocitana; z.interval = 0;  z.v = 0;
-      pridejDoHistorie(z);
-      z.t = nevysvetlene[1]; z.otacka++;  z.interval = i1; z.v = OBVOD_KOLA_M / i1;
-      pridejDoHistorie(z);
-      float v1 = z.v;
-      z.t = t;               z.otacka++;  z.interval = i2; z.v = OBVOD_KOLA_M / i2;
-      pridejDoHistorie(z);
-      zacniJizdu(v1, z);
-      vypisPulz('R', i2, z.v, 1);
+    { chytStopu(nevysvetlene[0], nevysvetlene[1], t);
       return; }
     nevysvetlene[0] = nevysvetlene[1];
     nevysvetleneN = 1; }
@@ -689,8 +729,14 @@ void zpracujPulz(unsigned long t)
   if (historieN > 0 && (t - historie[historieN - 1].t) > CAS_DO_ZASTAVENI_MS * 1000UL)
   { vymazSledovani(); }
 
+  bool naZlomku = stopaNaZlomku(t);
+
   if (!jedeme)
   { zpracujRozjezd(t);
+    return; }
+
+  if (naZlomku)
+  { chytStopu(surove[SUROVE_DELKA - 3], surove[SUROVE_DELKA - 2], t);
     return; }
 
   // Čekaná rychlost: trend jen napůl, ať změna trendu nevykolejí výběr.
@@ -712,16 +758,24 @@ void zpracujPulz(unsigned long t)
     float vMax = rychlostMax(v0);
     float vMin = rychlostMin(v0);
     float vPred = v0 + trend;
+    // Nejistý předchůdce = nečekaný skok rychlosti. Jestli byl skutečný, kolo
+    // zrychluje dál stejně (v^2 roste s každou otáčkou o stejný kus). Bez toho
+    // při ostrém rozjezdu z kroku vyhrávalo "byl to šum" a ručka zůstala stát.
+    if (historie[i].nejisty)
+    { float v2 = 2.0f * v0 * v0 - vPosledniMs * vPosledniMs;
+      vPred = (v2 > 0) ? sqrtf(v2) : 0; }
     if (vPred < 0.5f) vPred = 0.5f;
     for (uint8_t n = 1; n <= nMax; n++)
     { float interval = dt / n;
       float v = OBVOD_KOLA_M / interval;
       if (v > vMax) break;            // moc brzo (víc otáček = ještě rychlejší)
       if (v < vMin) continue;         // moc pozdě: nevynechal se pulz?
-      if (historie[i].interval > 0)   // pravidelnost proti intervalu předchůdce
-      { float pomerIntervalu = interval / historie[i].interval;
-        if (pomerIntervalu < INTERVAL_POMER_MIN) break;
-        if (pomerIntervalu > INTERVAL_POMER_MAX_JIZDA) continue; }
+      // Pravidelnost proti intervalu předchůdce hlídá jen zpomalení. Zrychlení
+      // hlídá fyzika (vMax): pevný poměr 0.6 byl při ostrém rozjezdu z kroku
+      // přísnější než fyzika, zahodil skutečný pulz a stopa pak zůstala viset
+      // na polovině rychlosti.
+      if (historie[i].interval > 0 &&
+          interval > INTERVAL_POMER_MAX_JIZDA * historie[i].interval) continue;
       float pomer = v / vPred;
       float skore = (pomer > 1.0f ? pomer - 1.0f : 1.0f / pomer - 1.0f)
                     + STARSI_PREDCHUDCE_PENALE * (historieN - 1 - i)   // starší předchůdce jen když novější fakt nesedí
@@ -919,24 +973,22 @@ void nastavRucickuKmH(float hodnotaKmh)
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { x27Cil = cil; } }
 
 // ============================================================
-// 10) HEARTBEAT LED, LOGO, I2C FIX
+// 10) LED SNÍMAČE, LOGO, I2C FIX
 // ============================================================
 
-// Timer2 v CTC módu, prescaler 1024 -> jeden "tik" cca 16 ms.
-// V ISR čekáme 16 tiků (~256 ms), než LED přepneme (~2 Hz).
-volatile uint8_t heartbeatPocitadloPreruseni = 0;
+// LED na D13 blikne na každý pulz kola, který projde ISR (i když ho pak
+// zpracování zahodí jako rušení). Rozsvítí ji ISR snímače, zhasne Timer2:
+// CTC mód, prescaler 1024 -> jeden "tik" cca 16 ms, bliknutí 16-32 ms.
 
-void nastavHeartbeatTimer()
+void nastavLedTimer()
 { TCCR2A = (1 << WGM21);                              // CTC mód
   TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);   // prescaler 1024
   OCR2A = 249;                                         // perioda ~16 ms
   TIMSK2 = (1 << OCIE2A); }
 
 ISR(TIMER2_COMPA_vect)
-{ heartbeatPocitadloPreruseni++;
-  if (heartbeatPocitadloPreruseni >= 16)
-  { heartbeatPocitadloPreruseni = 0;
-    digitalWrite(13, !digitalRead(13)); } }
+{ if (ledZbyvaTiku > 0 && --ledZbyvaTiku == 0)
+  { digitalWrite(13, LOW); } }
 
 void zobrazUvodniLogo()
 { int x = (128 - STADION_WIDTH) / 2 -4;  //posunuty o -4px, aby to vycházelo do výřezu
@@ -1040,7 +1092,7 @@ void obnovHardware()
   { EICRA = (EICRA & ~(_BV(ISC01) | _BV(ISC00))) | _BV(ISC01);   // INT0 na sestupnou hranu
     EIMSK |= _BV(INT0);
     nastavTimerRucicky();
-    nastavHeartbeatTimer(); } }
+    nastavLedTimer(); } }
 
 // ============================================================
 // 10B) TACHO (vypnuté, zapnout #define TACHO v sekci 1)
@@ -1290,7 +1342,7 @@ void setup()
   OCR1A = X27_KLID_TIK_US * 2 - 1;
   TCNT1 = 0;
   nastavTimerRucicky();
-  nastavHeartbeatTimer();
+  nastavLedTimer();
 
   // Přerušení pro kolo. Stará čekající hrana pryč.
   EIFR = _BV(INTF0);
