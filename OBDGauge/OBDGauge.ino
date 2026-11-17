@@ -12,7 +12,7 @@
 
 // ============================================================
 
-const char FW_VERZE[] PROGMEM = "  OBDGauge V0.21";
+const char FW_VERZE[] PROGMEM = "  OBDGauge V0.22";
 
 //  Čtyři hodnoty z OBD-II přes CAN (500 kbps, 11bit, ISO 15765-4), dělané na
 //  Subaru XV 2.0D (EE20, 2017) - ale chodit to bude na čemkoli s CANem:
@@ -107,6 +107,7 @@ const unsigned long MEZERA_DOTAZU_MS = 20;        // nezahltit ECU
 const unsigned long HODNOTA_PLATNA_MS = 3000;     // pak "--"
 const unsigned long CAS_BEZ_ODPOVEDI_MS = 3000;   // celé ticho -> NO DATA + nový start MCP
 const unsigned long DISPLEJ_INTERVAL_MS = 100;
+const unsigned long OBNOVA_DISPLEJE_MS = 1000;   // znovu poslat registry displeje (proti rušení)
 const unsigned long I2C_TIMEOUT_US = 10000UL;     // max čekání na jednu I2C operaci (10 ms)
 const byte CHYB_DO_VYRAZENI = 5;                  // tolik timeoutů po sobě = PID neumí
 
@@ -154,6 +155,7 @@ byte sekvenceIndex = 0;
 bool mcpOk = false;
 unsigned long odpovedCas = 0, initCas = 0, displejCas = 0;
 
+unsigned long obnovaCas = 0;
 bool svetla = false;              // ztlumeno
 bool svetlaSurove = false;
 unsigned long svetlaZmenaCas = 0;
@@ -541,15 +543,13 @@ void zobrazUvodniLogo()
 }
 
 // ============================================================
-// 8) SETUP
+// 7B) I2C / DISPLEJ: START A OBNOVA PO RUŠENÍ
 // ============================================================
 
-void setup()
-{ MCUSR = 0;
-  wdt_disable();
-  wdt_enable(WDTO_8S);
-
-  // === I2C BUS CLEAR (zvon na hajzl pro zaseknutej displej) ===
+// Start I2C od nuly: uvolnit piny, vyklepat zaseklou sběrnici (9 pulzů + STOP),
+// nahodit Wire s timeoutem a displej.
+void i2cStart()
+{ Wire.end();
   pinMode(SDA, INPUT_PULLUP);
   pinMode(SCL, INPUT_PULLUP);
   delayMicroseconds(10);
@@ -567,6 +567,52 @@ void setup()
   Wire.setWireTimeout(I2C_TIMEOUT_US, true);   // při timeoutu resetni TWI hardware
   u8g2.begin();                                // Wire.begin() + init displeje (denní jas = init u8g2)
   Wire.clearWireTimeoutFlag();
+}
+
+void zkontrolujI2C()
+{ if (Wire.getWireTimeoutFlag())                     // zaseklé I2C -> displej znovu nahodit
+  { i2cStart();
+    nastavJas(svetla); } }
+
+// Rušení umí displeji přepsat registry (start line, offset, adresování...),
+// pak ukazuje tečky / staré obrázky ze zbytku RAM, i když kreslíme správně.
+// Jednou za vteřinu se znovu pošle nastavení jako při initu u8g2 pro SH1106,
+// ale BEZ 0xAE (neblikne) a BEZ 0xD9/0xDB (na Laskakit SH1106 zasekávaly I2C).
+// Kontrast řeší nastavJas().
+const uint8_t OLED_OBNOVA_SEQ[] = {
+  U8X8_START_TRANSFER(),
+  U8X8_CA(0x0d5, 0x080),   // clock divide / oscilátor
+  U8X8_CA(0x0a8, 0x03f),   // multiplex 1/64
+  U8X8_CA(0x0d3, 0x000),   // offset
+  U8X8_C(0x040),           // start line 0
+  U8X8_CA(0x08d, 0x014),   // charge pump (SSD1306; SH1106 ignoruje)
+  U8X8_CA(0x020, 0x000),   // adresování (SSD1306; SH1106 ignoruje)
+  U8X8_C(0x0a1),           // segment remap
+  U8X8_C(0x0c8),           // scan směr
+  U8X8_CA(0x0da, 0x012),   // COM piny
+  U8X8_C(0x02e),           // scroll vypnout
+  U8X8_C(0x0a4),           // zobrazit RAM
+  U8X8_C(0x0a6),           // neinvertovaně
+  U8X8_C(0x0af),           // displej zapnout
+  U8X8_END_TRANSFER(),
+  U8X8_END()
+};
+
+void obnovDisplej()
+{ u8x8_cad_SendSequence(u8g2.getU8x8(), OLED_OBNOVA_SEQ);
+  nastavJas(svetla);
+  zkontrolujI2C(); }
+
+// ============================================================
+// 8) SETUP
+// ============================================================
+
+void setup()
+{ MCUSR = 0;
+  wdt_disable();
+  wdt_enable(WDTO_8S);
+
+  i2cStart();
 
   // MCP2515 piny
   pinMode(CAN_CS, OUTPUT);   digitalWrite(CAN_CS, HIGH);
@@ -634,11 +680,11 @@ void loop()
   { vykresliDashboard();
     displejCas = ted; }
 
-  if (Wire.getWireTimeoutFlag())                     // zaseklé I2C -> displej znovu nahodit
-  { Wire.clearWireTimeoutFlag();
-    u8g2.begin();
-    if (svetla) nastavJas(true);
-    Wire.clearWireTimeoutFlag(); }
+  if (ted - obnovaCas >= OBNOVA_DISPLEJE_MS)          // registry displeje znovu (rušení)
+  { obnovDisplej();
+    obnovaCas = ted; }
+
+  zkontrolujI2C();
 }
 
 // ============================================================

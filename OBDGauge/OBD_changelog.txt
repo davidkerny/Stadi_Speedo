@@ -1,6 +1,11 @@
 OBDGauge Changelog
 ________________________
 
+0.22 Odolnost displeje proti rušení: jednou za vteřinu se znovu pošlou registry SH1106
+     (bez 0xAE, 0xD9, 0xDB), zaseklé I2C = celý restart sběrnice (9 pulzů + STOP) a displeje.
+     Přidán elm327_test.py - test OBD přes ELM327 Bluetooth dongle (bez rfcomm/pyserial).
+     Subaru XV: 0x87 ani 0x5C ECU neumí (ověřeno ELM327), BOOST jde přes 0x0B.
+
 0.21 I2C timeout 10 ms (jako AnaloGauge) - bez něj se displej SH1106 zasekl hned při startu
      na příkazu 0xDB a nic se nezobrazilo. Zaseklé I2C = znovu nahodit displej.
      Při startu se už neposílají precharge/VCOMH (u8g2 init má stejné hodnoty).
